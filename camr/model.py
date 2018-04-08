@@ -1,5 +1,5 @@
 #!/usr/bin/python
-from __future__ import absolute_import, division, print_function, unicode_literals
+from __future__ import absolute_import
 
 import bz2,contextlib
 import numpy as np
@@ -365,7 +365,8 @@ class Model():
         os.chdir(package_directory)
         logging.info(os.getcwd())
         logging.info(path.is_file())
-
+        import camr.common as common
+        import camr.constants as constants
         with open(fh, 'rb') as f:
             model = pickle._Unpickler(f, encoding='bytes').load()
         # deal with module name conflict
