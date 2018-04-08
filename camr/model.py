@@ -359,8 +359,16 @@ class Model():
         #             break
         import builtins
         builtins.file = builtins.open
+
+        from pathlib import Path
+        path = Path('./feature/basic_abt_brown_feats.templates')
+        package_directory = os.path.dirname(os.path.abspath(__file__))
+        os.chdir(package_directory)
+        logging.info(os.getcwd())
+        logging.info(path.is_file())
+
         with open(fh, 'rb') as f:
-            model = pickle.load(f, encoding='latin-1')
+            model = pickle._Unpickler(f, encoding='bytes').load()
         # deal with module name conflict
         #tmp = sys.path.pop(0)
         #model.avg_weight = np.load(open(model_filename+'.weight', 'rb'))

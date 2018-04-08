@@ -11,16 +11,16 @@ import sys,codecs,time,string
 import re
 import random
 import pickle as pickle
-from common.SpanGraph import *
-from common.AMRGraph import *
+from .common.SpanGraph import *
+from .common.AMRGraph import *
 import subprocess
-from Aligner import *
-from parser import *
-from model import Model
+from .Aligner import *
+from .parser import *
+from .model import Model
 import argparse
-from preprocessing import *
-import constants
-from graphstate import GraphState
+from .preprocessing import *
+from . import constants
+from .graphstate import GraphState
 import imp
 import logging
 
@@ -315,79 +315,79 @@ def main():
     #     print "Tagging Precision:%s Recall:%s" % (tp,tr)
     #
     #     #amr_parser.record_actions('data/action_set.txt')
-    # elif args.mode == 'train': # training
-    #     print "Parser Config:"
-    #     print "Incorporate Coref Information: %s"%(constants.FLAG_COREF)
-    #     print "Incorporate SRL Information: %s"%(constants.FLAG_PROP)
-    #     print "Substitue the normal name entity tag with rich name entity tag: %s"%(constants.FLAG_RNE)
-    #     print "Using verbalization list: %s"%(constants.FLAG_VERB)
-    #     print "Using charniak parser trained on ontonotes: %s"%(constants.FLAG_ONTO)
-    #     print "Dependency parser used: %s"%(constants.FLAG_DEPPARSER)
-    #     train_instances = preprocess(amr_file,START_SNLP=False,INPUT_AMR=args.amrfmt,PRP_FORMAT=args.prpfmt)
-    #     if args.add: train_instances = train_instances + preprocess(args.add,START_SNLP=True,INPUT_AMR=args.amrfmt,PRP_FORMAT=args.prpfmt)
-    #     if args.dev: dev_instances = preprocess(args.dev,START_SNLP=False,INPUT_AMR=args.amrfmt,PRP_FORMAT=args.prpfmt)
-    #
-    #
-    #     if args.section != 'all':
-    #         print "Choosing corpus section: %s"%(args.section)
-    #         tcr = constants.get_corpus_range(args.section,'train')
-    #         train_instances = train_instances[tcr[0]:tcr[1]]
-    #         if args.dev:
-    #             dcr = constants.get_corpus_range(args.section,'dev')
-    #             dev_instances = dev_instances[dcr[0]:dcr[1]]
-    #
-    #
-    #     feat_template = args.feat if args.feat else None
-    #     model = Model(elog=experiment_log)
-    #     #model.output_feature_generator()
-    #     parser = Parser(model=model,oracle_type=DET_T2G_ORACLE_ABT,action_type=args.actionset,verbose=args.verbose,elog=experiment_log)
-    #     model.setup(action_type=args.actionset,instances=train_instances,parser=parser,feature_templates_file=feat_template)
-    #
-    #     print >> experiment_log, "BEGIN TRAINING!"
-    #     best_fscore = 0.0
-    #     best_pscore = 0.0
-    #     best_rscore = 0.0
-    #     best_model = None
-    #     best_iter = 1
-    #     for iter in xrange(1,args.iterations+1):
-    #         print >> experiment_log, "shuffling training instances"
-    #         random.shuffle(train_instances)
-    #
-    #         print >> experiment_log, "Iteration:",iter
-    #         begin_updates = parser.perceptron.get_num_updates()
-    #         parser.parse_corpus_train(train_instances)
-    #         parser.perceptron.average_weight()
-    #
-    #         if args.dev:
-    #             print >> experiment_log ,"Result on develop set:"
-    #             _,parsed_amr = parser.parse_corpus_test(dev_instances)
-    #             parsed_suffix = args.section+'.'+args.model.split('.')[-1]+'.'+str(iter)+'.parsed'
-    #             write_parsed_amr(parsed_amr,dev_instances,args.dev,parsed_suffix)
-    #             if args.smatcheval:
-    #                 smatch_path = "./smatch_2.0.2/smatch.py"
-    #                 python_path = 'python'
-    #                 options = '--pr -f'
-    #                 parsed_filename = args.dev+'.'+parsed_suffix
-    #                 command = '%s %s %s %s %s' % (python_path, smatch_path, options, parsed_filename, args.dev)
-    #
-    #                 print 'Evaluation using command: ' + (command)
-    #                 #print subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
-    #                 eval_output = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
-    #                 print eval_output
-    #                 pscore = float(eval_output.split('\n')[0].split(':')[1].rstrip())
-    #                 rscore = float(eval_output.split('\n')[1].split(':')[1].rstrip())
-    #                 fscore = float(eval_output.split('\n')[2].split(':')[1].rstrip())
-    #                 if fscore > best_fscore:
-    #                     best_model = model
-    #                     best_iter = iter
-    #                     best_fscore = fscore
-    #                     best_pscore = pscore
-    #                     best_rscore = rscore
-    #
-    #     if best_model is not None:
-    #         print >> experiment_log, "Best result on iteration %d:\n Precision: %f\n Recall: %f\n F-score: %f" % (best_iter, best_pscore, best_rscore, best_fscore)
-    #         best_model.save_model(args.model+'.m')
-    #     print >> experiment_log ,"DONE TRAINING!"
+    elif args.mode == 'train': # training
+        print("Parser Config:")
+        print("Incorporate Coref Information: %s"%(constants.FLAG_COREF))
+        print("Incorporate SRL Information: %s"%(constants.FLAG_PROP))
+        print("Substitue the normal name entity tag with rich name entity tag: %s"%(constants.FLAG_RNE))
+        print("Using verbalization list: %s"%(constants.FLAG_VERB))
+        print("Using charniak parser trained on ontonotes: %s"%(constants.FLAG_ONTO))
+        print("Dependency parser used: %s"%(constants.FLAG_DEPPARSER))
+        train_instances = preprocess(amr_file,START_SNLP=False,INPUT_AMR=args.amrfmt,PRP_FORMAT=args.prpfmt)
+        if args.add: train_instances = train_instances + preprocess(args.add,START_SNLP=True,INPUT_AMR=args.amrfmt,PRP_FORMAT=args.prpfmt)
+        if args.dev: dev_instances = preprocess(args.dev,START_SNLP=False,INPUT_AMR=args.amrfmt,PRP_FORMAT=args.prpfmt)
+
+
+        if args.section != 'all':
+            print("Choosing corpus section: %s"%(args.section))
+            tcr = constants.get_corpus_range(args.section,'train')
+            train_instances = train_instances[tcr[0]:tcr[1]]
+            if args.dev:
+                dcr = constants.get_corpus_range(args.section,'dev')
+                dev_instances = dev_instances[dcr[0]:dcr[1]]
+
+
+        feat_template = args.feat if args.feat else None
+        model = Model(elog=experiment_log)
+        #model.output_feature_generator()
+        parser = Parser(model=model,oracle_type=DET_T2G_ORACLE_ABT,action_type=args.actionset,verbose=args.verbose,elog=experiment_log)
+        model.setup(action_type=args.actionset,instances=train_instances,parser=parser,feature_templates_file=feat_template)
+
+        print("BEGIN TRAINING!", file=experiment_log)
+        best_fscore = 0.0
+        best_pscore = 0.0
+        best_rscore = 0.0
+        best_model = None
+        best_iter = 1
+        for iter in range(1,args.iterations+1):
+            print("shuffling training instances", file=experiment_log)
+            random.shuffle(train_instances)
+
+            print("Iteration:",iter, file=experiment_log)
+            begin_updates = parser.perceptron.get_num_updates()
+            parser.parse_corpus_train(train_instances)
+            parser.perceptron.average_weight()
+
+            if args.dev:
+                print("Result on develop set:", file=experiment_log)
+                _,parsed_amr = parser.parse_corpus_test(dev_instances)
+                parsed_suffix = args.section+'.'+args.model.split('.')[-1]+'.'+str(iter)+'.parsed'
+                write_parsed_amr(parsed_amr,dev_instances,args.dev,parsed_suffix)
+                if args.smatcheval:
+                    smatch_path = "./smatch_2.0.2/smatch.py"
+                    python_path = 'python'
+                    options = '--pr -f'
+                    parsed_filename = args.dev+'.'+parsed_suffix
+                    command = '%s %s %s %s %s' % (python_path, smatch_path, options, parsed_filename, args.dev)
+
+                    print('Evaluation using command: ' + (command))
+                    #print subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
+                    eval_output = subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
+                    print(eval_output)
+                    pscore = float(eval_output.split('\n')[0].split(':')[1].rstrip())
+                    rscore = float(eval_output.split('\n')[1].split(':')[1].rstrip())
+                    fscore = float(eval_output.split('\n')[2].split(':')[1].rstrip())
+                    if fscore > best_fscore:
+                        best_model = model
+                        best_iter = iter
+                        best_fscore = fscore
+                        best_pscore = pscore
+                        best_rscore = rscore
+
+        if best_model is not None:
+            print("Best result on iteration %d:\n Precision: %f\n Recall: %f\n F-score: %f" % (best_iter, best_pscore, best_rscore, best_fscore), file=experiment_log)
+            best_model.save_model(args.model+'.m')
+        print("DONE TRAINING!", file=experiment_log)
         
     elif args.mode == 'parse': # actual parsing
         logging.info('success')
@@ -395,15 +395,15 @@ def main():
         logging.info('success')
 
         if args.section != 'all':
-            print("Choosing corpus section: %s"%(args.section))
+            print(("Choosing corpus section: %s"%(args.section)))
             tcr = constants.get_corpus_range(args.section,'test')
             test_instances = test_instances[tcr[0]:tcr[1]]
             
         #random.shuffle(test_instances)
-        print("Loading model: ", args.model, file=experiment_log) 
+        print(("Loading model: ", args.model))
         model = Model.load_model(args.model)
         parser = Parser(model=model,oracle_type=DET_T2G_ORACLE_ABT,action_type=args.actionset,verbose=args.verbose,elog=experiment_log)
-        print("BEGIN PARSING", file=experiment_log)
+        print("BEGIN PARSING")
         span_graph_pairs,results = parser.parse_corpus_test(test_instances)
         parsed_suffix = '%s.%s.parsed'%(args.section,args.model.split('.')[-2])
         write_parsed_amr(results,test_instances,amr_file,suffix=parsed_suffix)
@@ -413,7 +413,7 @@ def main():
         ################
         #pickle.dump(span_graph_pairs,open('data/eval/%s_spg_pair.pkl'%(amr_file),'wb'),pickle.HIGHEST_PROTOCOL)
         #pickle.dump(test_instances,open('data/eval/%s_instances.pkl'%(amr_file),'wb'),pickle.HIGHEST_PROTOCOL)
-        print("DONE PARSING", file=experiment_log)
+        print("DONE PARSING")
         if args.smatcheval:
             smatch_path = "./smatch_2.0.2/smatch.py"
             python_path = 'python'
@@ -421,8 +421,8 @@ def main():
             parsed_filename = amr_file+'.'+parsed_suffix
             command = '%s %s %s %s %s' % (python_path,smatch_path,options,parsed_filename, amr_file)
                     
-            print('Evaluation using command: ' + (command))
-            print(subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True))
+            print(('Evaluation using command: ' + (command)))
+            print((subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)))
 
             
         #plt.hist(results)
