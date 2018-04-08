@@ -189,6 +189,7 @@ def parse_parser_results_new(text):
         
         elif state == STATE_WORDS:
             if len(line) == 0:
+                i += 1
                 continue
             if not line.startswith("[Text="):
                 #raise Exception('Parse error. Could not find "[Text=" in: %s' % line)
@@ -317,20 +318,30 @@ class StanfordCoreNLP(object):
         #        "joda-time.jar",
         #        "xom.jar",
         #        "jollyday.jar"]
+        #
+        # jars = ["stanford-corenlp-3.5.2.jar",
+        #         "stanford-corenlp-3.5.2-models.jar",
+        #         "joda-time.jar",
+        #         "xom.jar",
+        #         "jollyday.jar",
+        #         "protobuf.jar",
+        #         "javax.json.jar",
+        #         "ejml-0.23.jar"]
 
-        jars = ["stanford-corenlp-3.5.2.jar",
-                "stanford-corenlp-3.5.2-models.jar",
-                "joda-time.jar",
-                "xom.jar",
-                "jollyday.jar",
-                "protobuf.jar",
-                "javax.json.jar",
-                "ejml-0.23.jar"]
-        
+        jars = ["stanford-corenlp.jar",
+                "stanford-corenlp-models-current.jar",
+                "stanford-english-corenlp-models-current.jar",
+                "lib/joda-time.jar",
+                "lib/xom-1.2.10.jar",
+                "lib/jollyday-0.4.9.jar",
+                "lib/protobuf.jar",
+                "lib/javax.json.jar",
+                "lib/ejml-0.23.jar"]
        
         # if CoreNLP libraries are in a different directory,
         # change the corenlp_path variable to point to them
-        corenlp_path = os.path.relpath(__file__).split('/')[0]+"/stanford-corenlp-full-2015-04-20/"
+        corenlp_path= '/Users/ted/Documents/dossier10/lib/CoreNLP/'
+        # corenlp_path = os.path.relpath(__file__).split('/')[0]+"/stanford-corenlp-full-2015-04-20/"
         #corenlp_path = "stanford-corenlp-full-2013-06-20/"
         
         java_path = "java"
@@ -348,7 +359,7 @@ class StanfordCoreNLP(object):
 
         #Change from ':' to ';'
         # spawn the server
-        start_corenlp = "%s -Xmx2500m -cp %s %s %s" % (java_path, ':'.join(jars), classname, props)
+        start_corenlp = "%s -Xmx2500m -cp %s --add-modules java.se.ee %s %s" % (java_path, ':'.join(jars), classname, props)
         if VERBOSE: print start_corenlp
         self.corenlp = pexpect.spawn(start_corenlp)
         
