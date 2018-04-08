@@ -4,12 +4,12 @@
 aligner for AMR and its corresponding sentence
 """
 import re,sys
-from camr.common.util import *
-from camr.common.util import english_number,to_order
+from common.util import *
+from common.util import english_number,to_order
 from collections import defaultdict
 from nltk.stem.wordnet import WordNetLemmatizer
-from camr.span import Span
-from camr.constants import VERB_LIST
+from span import Span
+from constants import VERB_LIST
 #from nltk.corpus import wordnet as wn
 #class regex_pattern:
 #    TempQuantity = '(?P<quant>[0-9]+)(?P<unit>year|month?)s?'
@@ -270,7 +270,7 @@ class Aligner():
                 #matched_variable = unmatched_variables[matched_variable_pos]
 
                 if rule_type == 'NameEntity':
-                    NE_items = [v[0] for k,v in list(amr[matched_variable].items())]
+                    NE_items = [v[0] for k,v in amr[matched_variable].items()]
                     #spans = [(j,len(NEStr)) for j in range(len(sent_list)) if sent_list[j:j+len(NEStr)] == NEStr]
                     NE_pattern = re.compile("\s".join(NE_items),re.IGNORECASE)
 
@@ -282,7 +282,7 @@ class Aligner():
                     span = [range(i,i+len(NEStr)) for i in range(len(sent_list)) if sent_list[i:i+len(NEStr)] == NEStr]
                     '''
                     span = self._search_sent(NE_pattern,sent,tokens)
-                    for sid, n in zip(list(range(span[0],span[1])), NE_items):
+                    for sid, n in zip(range(span[0],span[1]), NE_items):
                         alignment[n].append(sid)
                     alignment[matched_variable].append(matched_variable)
 
@@ -290,7 +290,7 @@ class Aligner():
                     quantity = ''
                     unit = ''
                     unit_node = None
-                    for k,v in list(amr[matched_variable].items()):
+                    for k,v in amr[matched_variable].items():
                         if k == 'quant':
                             quantity = v[0]
                         elif k == 'unit':
@@ -318,11 +318,11 @@ class Aligner():
                     #alignment[matched_variable].append(span)
                     '''
                     span = self._search_sent(TEMP_pattern,sent,tokens)
-                    for sid, n in zip(list(range(span[0],span[1])), TEMP_items):
+                    for sid, n in zip(range(span[0],span[1]), TEMP_items):
                         alignment[n].append(sid)
                     alignment[matched_variable].append(matched_variable)
     
-                    self.remove_aligned_concepts(unmatched_variables,list(amr[matched_variable].items()))
+                    self.remove_aligned_concepts(unmatched_variables,amr[matched_variable].items())
 
                 elif rule_type == 'NegPolarity':
                     aligned = False
@@ -362,7 +362,7 @@ class Aligner():
                     if span:
                         alignment[matched_variable].append(idx)
                     else:
-                        print('WARNING: Variable %s/%s cannot be aligned'%(matched_variable,cur_concept), file=sys.stderr)
+                        print >> sys.stderr, 'WARNING: Variable %s/%s cannot be aligned'%(matched_variable,cur_concept)
                         alignment[matched_variable].append(matched_variable)
                         update = False
                 else:
@@ -370,12 +370,12 @@ class Aligner():
                 
                 # update
                 if update:
-                    tokens = [(i,tk) for i,tk in tokens if i not in list(range(span[0],span[1]))]
+                    tokens = [(i,tk) for i,tk in tokens if i not in range(span[0],span[1])]
                     sent = ' '.join(x for i,x in tokens)
                     if self.verbose > 2:
-                        print("Concept '%s' Matched to span '%s' "%(cur_concept,' '.join(w for i,w in enumerate(sentence.split()) if i+1 in range(span[0],span[1]))), file=sys.stderr)
-                        print(sent)
-                        print(alignment)
+                        print >> sys.stderr, "Concept '%s' Matched to span '%s' "%(cur_concept,' '.join(w for i,w in enumerate(sentence.split()) if i+1 in range(span[0],span[1])))
+                        print sent
+                        print alignment
                 
                         #raw_input('ENTER to continue')
 
@@ -404,7 +404,7 @@ class Aligner():
                 span = None
                 update = True
                 if rule_type == "NameEntity":
-                    NE_items = [v[0] for k,v in list(amr[cur].items())]
+                    NE_items = [v[0] for k,v in amr[cur].items()]
                     NE_pattern = re.compile(r"\s".join(NE_items),re.IGNORECASE)
                     
                     start,end = self._search_sent(NE_pattern,sent,tokens)
@@ -416,7 +416,7 @@ class Aligner():
                     quantity = ''
                     unit = ''
                     unit_var = None
-                    for k,v in list(amr[cur].items()):
+                    for k,v in amr[cur].items():
                         if k == 'quant':
                             quantity = v[0]
                         elif k == 'unit':
@@ -432,7 +432,7 @@ class Aligner():
                         span = Span(start,end,Aligner.ENTITY_TAG_TABLE[rule_type],QTY_items)
                         alignment[cur].append(span)
                         
-                        self.remove_aligned_concepts(unmatched_vars,list(amr[cur].items()))
+                        self.remove_aligned_concepts(unmatched_vars,amr[cur].items())
                 elif rule_type == "NegPolarity":
                     aligned = False
                     for i,token in tokens:
@@ -474,7 +474,7 @@ class Aligner():
                     if span:
                         alignment[cur].append(span)
                     else:
-                        print('Variable/Concept %s/%s cannot be aligned'%(cur,cur_concept), file=sys.stderr)
+                        print >> sys.stderr, 'Variable/Concept %s/%s cannot be aligned'%(cur,cur_concept)
                         #alignment[matched_variable].append(matched_variable)
                         update = False                    
             else:
@@ -482,12 +482,12 @@ class Aligner():
 
             # update
             if update:
-                tokens = [(i,tk) for i,tk in tokens if i not in list(range(span.start,span.end))]
+                tokens = [(i,tk) for i,tk in tokens if i not in range(span.start,span.end)]
                 sent = ' '.join(x for i,x in tokens)
                 if self.verbose > 2:
-                    print("Concept '%s' Matched to span '%s' "%(cur_concept,' '.join(w for i,w in enumerate(sentence.split()) if i+1 in range(span[0],span[1]))), file=sys.stderr)
-                    print(sent)
-                    print(alignment)
+                    print >> sys.stderr, "Concept '%s' Matched to span '%s' "%(cur_concept,' '.join(w for i,w in enumerate(sentence.split()) if i+1 in range(span[0],span[1])))
+                    print sent
+                    print alignment
                     
                     #raw_input('ENTER to continue')
 
@@ -512,7 +512,7 @@ class Aligner():
             span = None
             update = True
             if rule_type == "NameEntity":
-                NE_items = [v[0] for k,v in list(amr[cur_var].items()) if isinstance(v[0],StrLiteral)]
+                NE_items = [v[0] for k,v in amr[cur_var].items() if isinstance(v[0],StrLiteral)]
                 nep = r'%s|%s'%(r'\s'.join(NE_items),r'\s'.join(n[:4] if len(n) > 3 else n for n in NE_items))
                 NE_pattern = re.compile(nep,re.IGNORECASE)
                 
@@ -520,14 +520,14 @@ class Aligner():
                 assert end-start == len(NE_items)
                 span = Span(start,end,Aligner.ENTITY_TAG_TABLE[rule_type],NE_items)
                 alignment[cur_var].append(span)
-                for k,v in list(amr[cur_var].items()):
+                for k,v in amr[cur_var].items():
                     if isinstance(v[0],StrLiteral):
                         self.remove_aligned_concepts(cur_var,k,v[0],unmatched_vars,triples)
 
             elif rule_type in ["DateEntity", "haveOrgRole91","RateEntity"]:
                 EN_items = []
                 EN_spans = []
-                for k,v in list(amr[cur_var].items()):                    
+                for k,v in amr[cur_var].items():                    
                     vconcept = amr.node_to_concepts[v[0]] if v[0] in amr.node_to_concepts else v[0]
                     EN_items.append(vconcept)
                     success, sent, tokens = self.align_single_concept(sent,tokens,v[0],amr,alignment,unmatched_vars,triples)
@@ -550,7 +550,7 @@ class Aligner():
                 q_success = False
                 u_success = False
                                 
-                for k,v in list(amr[cur_var].items()):
+                for k,v in amr[cur_var].items():
                     if k == 'quant':
                         quantity = v[0]
                         q_success, sent, tokens = self.align_single_concept(sent,tokens,quantity,amr,alignment,unmatched_vars,triples)
@@ -627,7 +627,7 @@ class Aligner():
                     alignment[cur_var].append(span)                
                 except Exception as e:
                     update = False
-                    print(e, file=sys.stderr)
+                    print >> sys.stderr,e
                     #raw_input('CONTINUE')
             
             elif rule_type == 'multiple':
@@ -677,7 +677,7 @@ class Aligner():
                     span = Span(i,i+1,Aligner.ENTITY_TAG_TABLE[rule_type],[token])
                     alignment[cur_var].append(span)
                 else:
-                    print('Variable/Concept %s/%s cannot be aligned'%(cur_var,cur_concept), file=sys.stderr)
+                    print >> sys.stderr, 'Variable/Concept %s/%s cannot be aligned'%(cur_var,cur_concept)
                     update = False
 
             elif rule_type == "thing":
@@ -715,7 +715,7 @@ class Aligner():
                             alignment[cur_var].append(span)
                             alignment[dir_var].append(span)
                         else:
-                            print('Variable/Concept %s/%s cannot be aligned'%(cur_var,cur_concept), file=sys.stderr)
+                            print >> sys.stderr, 'Variable/Concept %s/%s cannot be aligned'%(cur_var,cur_concept)
                             update = False
                     else:
                         rule_type = 'SingleConcept'
@@ -734,7 +734,7 @@ class Aligner():
                     alignment[cur_var].append(span)
                     alignment[k_var].append(span)
                 else:
-                    print('(%s/%s) :op1 (%s/%s) cannot be aligned'%(cur_var,cur_concept,k_var,amr.node_to_concepts[k_var]), file=sys.stderr)
+                    print >> sys.stderr, '(%s/%s) :op1 (%s/%s) cannot be aligned'%(cur_var,cur_concept,k_var,amr.node_to_concepts[k_var])
                     update = False
 
             elif self.is_why_question(cur_var,amr):
@@ -749,7 +749,7 @@ class Aligner():
                     alignment[cur_var].append(span)
                     alignment[arg0_var].append(span)
                 else:
-                    print('(%s/%s) :op1 (%s/%s) cannot be aligned'%(cur_var,cur_concept,arg0_var,amr.node_to_concepts[arg0_var]), file=sys.stderr)
+                    print >> sys.stderr, '(%s/%s) :op1 (%s/%s) cannot be aligned'%(cur_var,cur_concept,arg0_var,amr.node_to_concepts[arg0_var])
                     update = False
             else:
                 pass
@@ -759,17 +759,17 @@ class Aligner():
             elif cur_var in alignment:
                 pass
             else:
-                print('Can not find type of concept %s / %s'%(cur_var,cur_concept), file=sys.stderr)
+                print >> sys.stderr, 'Can not find type of concept %s / %s'%(cur_var,cur_concept)
 
             # update
             #print cur_concept,rule_type
             if update:
-                tokens = [(i,tk) for i,tk in tokens if i not in list(range(span.start,span.end))]
+                tokens = [(i,tk) for i,tk in tokens if i not in range(span.start,span.end)]
                 sent = ' '.join(x for i,x in tokens)
                 if self.verbose > 2:
-                    print("Concept '%s' Matched to span '%s' "%(cur_concept,' '.join(w for i,w in enumerate(sentence.split()) if i+1 in range(span[0],span[1]))), file=sys.stderr)
-                    print(sent)
-                    print(alignment)
+                    print >> sys.stderr, "Concept '%s' Matched to span '%s' "%(cur_concept,' '.join(w for i,w in enumerate(sentence.split()) if i+1 in range(span[0],span[1])))
+                    print sent
+                    print alignment
                     
                     #raw_input('ENTER to continue')
             return update, sent, tokens
@@ -825,7 +825,7 @@ class Aligner():
         if span:
             alignment[cur_var].append(span)
         else:
-            print('Variable/Concept %s/%s cannot be aligned'%(cur_var,cur_concept), file=sys.stderr)
+            print >> sys.stderr, 'Variable/Concept %s/%s cannot be aligned'%(cur_var,cur_concept)
             #alignment[matched_variable].append(matched_variable)
             update = False                    
         return update,span
@@ -915,14 +915,14 @@ class Aligner():
 
             if m.group()[0] == ' ' and m.group()[-1] == ' ':
                 spans = [(tokens[i][0],tokens[i][0]+len(items)) for i in range(len(tokens)) \
-                         if (sum([len(x[1])+1 for x in tokens[:i]])-1,sum([len(x[1])+1 for x in tokens[:i]])-1+len(m.group())) == m.span()]
+                         if (sum(map(lambda x:len(x[1])+1,tokens[:i]))-1,sum(map(lambda x:len(x[1])+1,tokens[:i]))-1+len(m.group())) == m.span()]
             else:
                 spans = [(tokens[i][0],tokens[i][0]+len(items)) for i in range(len(tokens)) \
-                         if (sum([len(x[1])+1 for x in tokens[:i]]),sum([len(x[1])+1 for x in tokens[:i]])+len(m.group())) == m.span()]
+                         if (sum(map(lambda x:len(x[1])+1,tokens[:i])),sum(map(lambda x:len(x[1])+1,tokens[:i]))+len(m.group())) == m.span()]
             return spans[0]
         else:
-            print(pattern.pattern)
-            print(sent)
+            print pattern.pattern
+            print sent
             raise SearchException("WARNING:Unable to find the matched span in sentence!")
             #return (-1,-1)
             

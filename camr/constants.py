@@ -162,6 +162,13 @@ FEATS_ABBR['txv'] = 'txv'
 FEATS_ABBR['txn'] = 'txn'
 FEATS_ABBR['txdelta'] = 'txdelta'
 
+
+import os
+package_directory = os.path.dirname(os.path.abspath(__file__))
+cwd = os.getcwd()
+os.chdir(package_directory)
+
+
 DEFAULT_RULE_FILE = './rules/dep2amrLabelRules'
 
 def _load_rules(rule_file):
@@ -248,7 +255,9 @@ def _load_country_list(path_to_file):
     return countrydict
     
 COUNTRY_LIST=_load_country_list(PATH_TO_COUNTRY_LIST)
-                
+
+os.chdir(cwd)
+
 
 # given different domain, return range of split corpus #TODO: move this part to config file
 def get_corpus_range(corpus_section,corpus_type):

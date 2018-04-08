@@ -6,8 +6,8 @@
 
 import copy
 import sys,re
-from .util import StrLiteral,Polarity,Quantity,ConstTag
-from .util import ispunctuation
+from util import StrLiteral,Polarity,Quantity,ConstTag
+from util import ispunctuation
 import constants
 from common.AMRGraph import *
 from collections import defaultdict
@@ -111,7 +111,7 @@ class SpanGraph(object):
                 h_node = SpanNode.from_span(hspan)
                 spgraph.add_node(h_node)
                 if hconcept == 'and': and_nodes.add(h_node.start)
-            for edge,ds in list(amr[h].items()):
+            for edge,ds in amr[h].items():
                 d = ds[0]
                 dconcept = amr.node_to_concepts[d] if d in amr.node_to_concepts else d
                 if not d in span_alignment:
@@ -143,7 +143,7 @@ class SpanGraph(object):
             spgraph.add_edge(0,hchild_id)
         else:
             if debuglevel > 1:
-                print("GraphID:%s WARNING:root %s not aligned!"%(SpanGraph.graphID,amr.node_to_concepts[amr.roots[0]]), file=log)
+                print >> log, "GraphID:%s WARNING:root %s not aligned!"%(SpanGraph.graphID,amr.node_to_concepts[amr.roots[0]])
             
             '''
             # make up a fake root that connect all the multi-roots
@@ -263,7 +263,7 @@ class SpanGraph(object):
                     if hconcept == 'and': and_nodes.add(h_node.start) # aligned 'and' nodes
                 h_index = hspan.start
                 
-            for edge,ds in list(amr[h].items()):
+            for edge,ds in amr[h].items():
                 d = ds[0]
                 if d not in amr.node_to_concepts and d not in span_alignment:
                     continue
@@ -312,7 +312,7 @@ class SpanGraph(object):
             spgraph.add_edge(0,hchild_id)
         else:
             if debuglevel > 1:
-                print("GraphID:%s WARNING:root %s not aligned!"%(SpanGraph.graphID,amr.node_to_concepts[amr.roots[0]]), file=log)
+                print >> log, "GraphID:%s WARNING:root %s not aligned!"%(SpanGraph.graphID,amr.node_to_concepts[amr.roots[0]])
             
             '''
             # make up a fake root that connect all the multi-roots
@@ -421,7 +421,7 @@ class SpanGraph(object):
             
     def pre_merge_netag(self,instance):
         ne_spans = instance.get_ne_span(PRE_MERGE_NETAG)
-        for ne_id,span in list(ne_spans.items()):
+        for ne_id,span in ne_spans.items():
             for sp_id in span:
                 if sp_id != ne_id and ne_id in self.nodes and sp_id in self.nodes:
                     self.merge_node(ne_id,sp_id)
@@ -466,16 +466,16 @@ class SpanGraph(object):
         #    self.add_edge(0,c)            
         
     def is_empty(self):
-        return len(list(self.nodes.keys())) == 0
+        return len(self.nodes.keys()) == 0
 
     def is_root(self):
-        return list(self.nodes.keys()) == [0]
+        return self.nodes.keys() == [0]
 
     def numNodes(self):
-        return len(list(self.nodes.keys()))
+        return len(self.nodes.keys())
 
     def nodes_list(self):
-        return list(self.nodes.keys())
+        return self.nodes.keys()
 
     def isContained(self,node_id):
         """check whether node is contained by some node in graph"""
@@ -739,7 +739,7 @@ class SpanGraph(object):
     
     def get_multi_roots(self):
         multi_roots = []
-        for n in list(self.nodes.keys()):
+        for n in self.nodes.keys():
             if self.nodes[n].parents == []  and self.nodes[n].children != []:  # root TODO: Detect root with circle    
                 multi_roots.append(n)
         return multi_roots

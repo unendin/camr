@@ -5,12 +5,12 @@ Interface for the parser:
 parse command line 
 read in corpus
 """
-
+from __future__ import absolute_import
 import sys,codecs,time,string
 #from optparse import OptionParser
 import re
 import random
-import pickle as pickle
+import cPickle as pickle
 from common.SpanGraph import *
 from common.AMRGraph import *
 import subprocess
@@ -21,17 +21,10 @@ import argparse
 from preprocessing import *
 import constants
 from graphstate import GraphState
-import imp
-import logging
+#import matplotlib.pyplot as plt
 
-log_level = 'INFO'
-logging.basicConfig(format='%(levelname)-4s [%(filename)s:%(lineno)d] %(message)s',
-                    datefmt='%d-%m-%Y:%H:%M:%S',
-                    level=getattr(logging, log_level))
-
-
-imp.reload(sys)
-# sys.setdefaultencoding('utf-8')
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 log = sys.stderr
 LOGGED= False
@@ -71,8 +64,8 @@ def write_parsed_amr(parsed_amr,instances,amr_file,suffix='parsed',hand_alignmen
     output = open(amr_file+'.'+suffix,'w')
     for pamr,inst in zip(parsed_amr,instances):
         if inst.comment:
-            output.write('# %s\n' % (' '.join(('::%s %s')%(k,v) for k,v in list(inst.comment.items()) if k in ['id','date','snt-type','annotator'])))
-            output.write('# %s\n' % (' '.join(('::%s %s')%(k,v) for k,v in list(inst.comment.items()) if k in ['snt','tok'])))
+            output.write('# %s\n' % (' '.join(('::%s %s')%(k,v) for k,v in inst.comment.items() if k in ['id','date','snt-type','annotator'])))
+            output.write('# %s\n' % (' '.join(('::%s %s')%(k,v) for k,v in inst.comment.items() if k in ['snt','tok'])))
             if hand_alignments:
                 output.write('# ::alignments %s ::gold\n' % (hand_alignments[inst.comment['id']]))
             #output.write('# %s\n' % (' '.join(('::%s %s')%(k,v) for k,v in inst.comment.items() if k in ['alignments'])))
@@ -93,7 +86,7 @@ def write_span_graph(span_graph_pairs,instances,amr_file,suffix='spg'):
     output_p = open(amr_file+'.'+suffix+'.parsed','w')
     output_g = open(amr_file+'.'+suffix+'.gold','w')
 
-    for i in range(len(instances)):
+    for i in xrange(len(instances)):
         output_d.write('# id:%s\n%s' % (instances[i].comment['id'],instances[i].printDep()))
         output_p.write('# id:%s\n%s' % (instances[i].comment['id'],span_graph_pairs[i][0].print_dep_style_graph()))
         output_g.write('# id:%s\n%s' % (instances[i].comment['id'],span_graph_pairs[i][1].print_dep_style_graph()))
@@ -174,7 +167,7 @@ def main():
     # using corenlp to preprocess the sentences 
     if args.mode == 'preprocess':
         instances = preprocess(amr_file,START_SNLP=True,INPUT_AMR=args.amrfmt, PRP_FORMAT=args.prpfmt)
-        print("Done preprocessing!")
+        print "Done preprocessing!"
     # preprocess the JAMR aligned amr
     # elif args.mode == 'test_gold_graph':
     #     instances = preprocess(amr_file,START_SNLP=False,INPUT_AMR=args.amrfmt, PRP_FORMAT=args.prpfmt)
@@ -390,20 +383,17 @@ def main():
     #     print >> experiment_log ,"DONE TRAINING!"
         
     elif args.mode == 'parse': # actual parsing
-        logging.info('success')
-        # test_instances = preprocess(amr_file,START_SNLP=False,INPUT_AMR=args.amrfmt,PRP_FORMAT=args.prpfmt)
-        logging.info('success')
-
+        test_instances = preprocess(amr_file,START_SNLP=False,INPUT_AMR=args.amrfmt,PRP_FORMAT=args.prpfmt)
         if args.section != 'all':
-            print("Choosing corpus section: %s"%(args.section))
+            print "Choosing corpus section: %s"%(args.section)
             tcr = constants.get_corpus_range(args.section,'test')
             test_instances = test_instances[tcr[0]:tcr[1]]
             
         #random.shuffle(test_instances)
-        print("Loading model: ", args.model, file=experiment_log) 
+        print >> experiment_log, "Loading model: ", args.model 
         model = Model.load_model(args.model)
         parser = Parser(model=model,oracle_type=DET_T2G_ORACLE_ABT,action_type=args.actionset,verbose=args.verbose,elog=experiment_log)
-        print("BEGIN PARSING", file=experiment_log)
+        print >> experiment_log ,"BEGIN PARSING"
         span_graph_pairs,results = parser.parse_corpus_test(test_instances)
         parsed_suffix = '%s.%s.parsed'%(args.section,args.model.split('.')[-2])
         write_parsed_amr(results,test_instances,amr_file,suffix=parsed_suffix)
@@ -413,7 +403,7 @@ def main():
         ################
         #pickle.dump(span_graph_pairs,open('data/eval/%s_spg_pair.pkl'%(amr_file),'wb'),pickle.HIGHEST_PROTOCOL)
         #pickle.dump(test_instances,open('data/eval/%s_instances.pkl'%(amr_file),'wb'),pickle.HIGHEST_PROTOCOL)
-        print("DONE PARSING", file=experiment_log)
+        print >> experiment_log ,"DONE PARSING"
         if args.smatcheval:
             smatch_path = "./smatch_2.0.2/smatch.py"
             python_path = 'python'
@@ -421,8 +411,8 @@ def main():
             parsed_filename = amr_file+'.'+parsed_suffix
             command = '%s %s %s %s %s' % (python_path,smatch_path,options,parsed_filename, amr_file)
                     
-            print('Evaluation using command: ' + (command))
-            print(subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True))
+            print 'Evaluation using command: ' + (command)
+            print subprocess.check_output(command, stderr=subprocess.STDOUT, shell=True)
 
             
         #plt.hist(results)

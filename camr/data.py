@@ -1,6 +1,6 @@
 import json
 from collections import defaultdict
-from constants import ROOT_FORM,ROOT_LEMMA,ROOT_POS,EMPTY
+from camr.constants import ROOT_FORM,ROOT_LEMMA,ROOT_POS,EMPTY
 
 
 class Data():

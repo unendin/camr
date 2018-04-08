@@ -26,7 +26,7 @@ import logging
 from unidecode import unidecode
 from nltk.tree import Tree
 import re
-from camr.data import Data
+from data import Data
 
 log_level = 'INFO'
 logging.basicConfig(format='%(levelname)-4s [%(filename)s:%(lineno)d] %(message)s',
@@ -123,8 +123,8 @@ def parse_parser_results_new(text):
                 continue
             if not line.startswith("[Text="):
                 #raise Exception('Parse error. Could not find "[Text=" in: %s' % line)
-                print('Parse error. Could not find "[Text=" in: %s' % line, file=sys.stderr)
-                print('Attempt to fixing error.', file=sys.stderr)
+                print >> sys.stderr, 'Parse error. Could not find "[Text=" in: %s' % line
+                print >> sys.stderr, 'Attempt to fixing error.'
                 following_line = line
                 state = STATE_TEXT_ERROR
                 i -= 1
@@ -138,8 +138,8 @@ def parse_parser_results_new(text):
                     i += 1
                     wline = seqs[i]
                     continue
-                data.addToken(t[0], t[1]['CharacterOffsetBegin'], t[1]['CharacterOffsetEnd'],
-                              t[1]['Lemma'],t[1]['PartOfSpeech'],t[1]['NamedEntityTag'])
+                data.addToken(t[0], t[1][u'CharacterOffsetBegin'], t[1][u'CharacterOffsetEnd'],
+                              t[1][u'Lemma'],t[1][u'PartOfSpeech'],t[1][u'NamedEntityTag'])
                 i += 1
                 wline = seqs[i]
 
@@ -147,8 +147,8 @@ def parse_parser_results_new(text):
                 wline = wline + seqs[i+1]
                 wline = wline.strip()
                 t = parse_bracketed(wline[1:-1])
-                data.addToken(t[0], t[1]['CharacterOffsetBegin'], t[1]['CharacterOffsetEnd'],
-                              t[1]['Lemma'],t[1]['PartOfSpeech'],t[1]['NamedEntityTag'])
+                data.addToken(t[0], t[1][u'CharacterOffsetBegin'], t[1][u'CharacterOffsetEnd'],
+                              t[1][u'Lemma'],t[1][u'PartOfSpeech'],t[1][u'NamedEntityTag'])
                 i+=2
                 state = STATE_WORDS
                 continue
@@ -336,8 +336,8 @@ class StanfordCoreNLP(object):
         
                 try:
                     data = parse_parser_results_new(result)
-                except Exception as e:
-                    if VERBOSE: print(traceback.format_exc())
+                except Exception, e:
+                    if VERBOSE: print traceback.format_exc()
                     raise e
                 if isinstance(data, list):
                     instances += data

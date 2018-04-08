@@ -1,18 +1,18 @@
 #!/usr/bin/python
-from __future__ import absolute_import, division, print_function, unicode_literals
 
+from __future__ import absolute_import
 import bz2,contextlib
 import numpy as np
 import sys
 import json
-import pickle
+import cPickle as pickle
 #import simplejson as json
 from constants import *
 from common.util import Alphabet,ETag,ConstTag
 import importlib
 from collections import defaultdict
-import logging
-from builtins import *
+
+
 
 _FEATURE_TEMPLATES_FILE = './feature/basic_abt_feats.templates'
 
@@ -57,7 +57,7 @@ class Model():
         if feature_templates_file:
             self._feats_templates_file = feature_templates_file 
         self.class_codebook = Alphabet.from_dict(dict((i,k) for i,(k,v) in enumerate(ACTION_TYPE_TABLE[action_type])),True)
-        self.feature_codebook = dict([(i,Alphabet()) for i in list(self.class_codebook._index_to_label.keys())])
+        self.feature_codebook = dict([(i,Alphabet()) for i in self.class_codebook._index_to_label.keys()])
         self.read_templates()
         
         #n_rel,n_tag = self._set_rel_tag_codebooks(instances,parser)
@@ -182,7 +182,7 @@ class Model():
         n_subclass = [1]*self.class_codebook.size()
         #self._pruning_abttag()
 
-        for k,v in list(self.class_codebook._index_to_label.items()):
+        for k,v in self.class_codebook._index_to_label.items():
             if v in ACTION_WITH_TAG:
                 #n_tag[k] = reduce(lambda x,y: x+y, map(lambda z: self.tag_codebook[z].size(), self.tag_codebook.keys()))
                 n_subclass[k] = self.tag_codebook['ABTTag'].size()
@@ -286,22 +286,22 @@ class Model():
         output.close()
         
         #sys.path.append('/temp/')
-        print("Importing feature generator!")
+        print "Importing feature generator!"
         self.feats_generator = importlib.import_module('temp.'+self._feats_gen_filename).generate_features
 
     def toJSON(self):
-        print('Converting model to JSON')
-        print('class size: %s \nrelation size: %s \ntag size: %s'%(self.class_codebook.size(),self.rel_codebook.size(),['%s->%s '%(x,self.tag_codebook[x].size()) for x in list(self.tag_codebook.keys())]))
-        print('feature codebook size: %s' % (','.join(('%s:%s')%(i,f.size()) for i,f in list(self.feature_codebook.items()))))
-        print('weight shape: %s' % (','.join(('%s:%s')%(i,w.shape) for i,w in enumerate(self.avg_weight))))
-        print('token to concept table: %s' % (len(self.token_to_concept_table)))
+        print 'Converting model to JSON'
+        print 'class size: %s \nrelation size: %s \ntag size: %s'%(self.class_codebook.size(),self.rel_codebook.size(),map(lambda x:'%s->%s '%(x,self.tag_codebook[x].size()),self.tag_codebook.keys()))
+        print 'feature codebook size: %s' % (','.join(('%s:%s')%(i,f.size()) for i,f in self.feature_codebook.items()))
+        print 'weight shape: %s' % (','.join(('%s:%s')%(i,w.shape) for i,w in enumerate(self.avg_weight)))
+        print 'token to concept table: %s' % (len(self.token_to_concept_table))
         model_dict = {
             '_feature_templates_list': self._feature_templates_list,
             '_feats_gen_filename':self._feats_gen_filename,
             #'weight':[w.tolist() for w in self.weight],
             #'aux_weight':[axw.tolist() for axw in self.aux_weight],
             'avg_weight':[agw.tolist() for agw in self.avg_weight],
-            'token_to_concept_table': dict([(k,list(v)) for k,v in list(self.token_to_concept_table.items())]),
+            'token_to_concept_table': dict([(k,list(v)) for k,v in self.token_to_concept_table.items()]),
             'class_codebook':self.class_codebook.to_dict(),
             'feature_codebook':self.feature_codebook.to_dict(),
             'rel_codebook':self.rel_codebook.to_dict(),
@@ -311,12 +311,12 @@ class Model():
         
     def save_model(self,model_filename):
         #pickle.dump(self,open(model_filename,'wb'),pickle.HIGHEST_PROTOCOL)
-        print('Model info:', file=self.elog)
-        print('class size: %s \nrelation size: %s \ntag size: %s'%(self.class_codebook.size(),self.rel_codebook.size(),['%s->%s '%(x,self.tag_codebook[x].size()) for x in list(self.tag_codebook.keys())]), file=self.elog)
-        print('feature codebook size: %s' % (','.join(('%s:%s')%(i,f.size()) for i,f in list(self.feature_codebook.items()))), file=self.elog)
+        print >> self.elog, 'Model info:'
+        print >> self.elog,'class size: %s \nrelation size: %s \ntag size: %s'%(self.class_codebook.size(),self.rel_codebook.size(),map(lambda x:'%s->%s '%(x,self.tag_codebook[x].size()),self.tag_codebook.keys()))
+        print >> self.elog,'feature codebook size: %s' % (','.join(('%s:%s')%(i,f.size()) for i,f in self.feature_codebook.items()))
         #print 'weight shape: %s' % (self.avg_weight.shape)
-        print('weight shape: %s' % (','.join(('%s:%s')%(i,w.shape) for i,w in enumerate(self.avg_weight))), file=self.elog)
-        print('token to concept table: %s' % (len(self.token_to_concept_table)), file=self.elog)
+        print >> self.elog,'weight shape: %s' % (','.join(('%s:%s')%(i,w.shape) for i,w in enumerate(self.avg_weight)))
+        print >> self.elog,'token to concept table: %s' % (len(self.token_to_concept_table))
         weight = self.weight
         aux_weight = self.aux_weight
         #avg_weight = self.avg_weight
@@ -335,7 +335,7 @@ class Model():
             with open(model_filename, 'wb') as f:
                 pickle.dump(self,f,pickle.HIGHEST_PROTOCOL)
         except:
-            print('Saving model error', sys.exc_info()[0], file=sys.stderr)
+            print >> sys.stderr, 'Saving model error', sys.exc_info()[0]
             #raise
             pass
 
@@ -346,18 +346,29 @@ class Model():
         
     @staticmethod
     def load_model(model_filename):
-        import os
-        package_directory = os.path.dirname(os.path.abspath(__file__))
-        fh = os.path.join(package_directory, model_filename)
+        
         #with contextlib.closing(bz2.BZ2File(model_filename, 'rb')) as f:
-        logging.info(fh)
-        with open(fh, 'rb') as f:
-            return pickle.load(f, encoding='bytes')
+        with open(model_filename, 'rb') as f:
+            model = pickle.load(f)
         # deal with module name conflict
         #tmp = sys.path.pop(0)
         #model.avg_weight = np.load(open(model_filename+'.weight', 'rb'))
         #sys.path.insert(0,tmp)
-
-        # return model
+        return model
         #return pickle.load(open(model_filename,'rb'))
-
+        '''
+        model_dict = json.load(open(model_filename,'rb'))
+        model_instance = Model()
+        model_instance._feature_templates_list = model_dict['_feature_templates_list']
+        model_instance._feats_gen_filename = model_dict['_feats_gen_filename']
+        model_instance.feats_generator = importlib.import_module('temp.'+model_instance._feats_gen_filename).generate_features
+        #model_instance.weight = [np.array(w) for w in model_dict['weight']]
+        #model_instance.aux_weight = [np.array(axw) for axw in model_dict['aux_weight']]
+        model_instance.avg_weight = [np.array(agw) for agw in model_dict['avg_weight']]
+        model_instance.token_to_concept_table = defaultdict(set,[(k,set(v)) for k,v in model_dict['token_to_concept_table'].items()])
+        model_instance.class_codebook = Alphabet.from_dict(model_dict['class_codebook'])
+        model_instance.feature_codebook = Alphabet.from_dict(model_dict['feature_codebook'])
+        model_instance.rel_codebook = Alphabet.from_dict(model_dict['rel_codebook'])
+        model_instance.tag_codebook = Alphabet.from_dict(model_dict['tag_codebook'])
+        return model_instance
+        '''

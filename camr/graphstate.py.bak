@@ -3,9 +3,9 @@
 # parsing state representing a subgraph
 # initialized with dependency graph
 #
-
+from __future__ import absolute_import
 import copy,sys,re
-import pickle
+import cPickle
 from parser import *
 from common.util import *
 from constants import *
@@ -21,7 +21,7 @@ class ActionError(Exception):
 class ActionTable(dict):
     '''to do'''
     def add_action(self,action_name):
-        key =  len(list(self.keys()))+1
+        key =  len(self.keys())+1
         self[key] = action_name
     
 class GraphState(object):
@@ -83,7 +83,7 @@ class GraphState(object):
         GraphState.verbose = verbose
         
         if verbose > 1:
-            print("Sentence ID:%s, initial sigma:%s" % (GraphState.sentID,sigma), file=sys.stderr)
+            print >> sys.stderr,"Sentence ID:%s, initial sigma:%s" % (GraphState.sentID,sigma)
 
         return GraphState(sigma,copy.deepcopy(depGraph))
 
@@ -137,7 +137,7 @@ class GraphState(object):
                         for tok in GraphState.sent] # atomic features for current state
         
     def pcopy(self):
-        return pickle.loads(pickle.dumps(self,-1))
+        return cPickle.loads(cPickle.dumps(self,-1))
     
     def is_terminal(self):
         """done traverse the graph"""
@@ -433,8 +433,8 @@ class GraphState(object):
             if isinstance(self.cidx,int) and isinstance(self.idx,int):
                 path,direction = GraphState.deptree.get_path(self.cidx,self.idx)
                 if self.A.nodes[self.idx].end - self.A.nodes[self.idx].start > 1:
-                    path_pos_str = [(GraphState.sent[i]['pos'],GraphState.sent[i]['rel']) for i in path[1:-1] if i not in list(range(self.A.nodes[self.idx].start,self.A.nodes[self.idx].end))]
-                    path_x_str_pp = [('X','X') if not isprep(GraphState.sent[i]) else GraphState.sent[i]['form'] for i in path[1:-1] if i not in list(range(self.A.nodes[self.idx].start,self.A.nodes[self.idx].end))]
+                    path_pos_str = [(GraphState.sent[i]['pos'],GraphState.sent[i]['rel']) for i in path[1:-1] if i not in range(self.A.nodes[self.idx].start,self.A.nodes[self.idx].end)]
+                    path_x_str_pp = [('X','X') if not isprep(GraphState.sent[i]) else GraphState.sent[i]['form'] for i in path[1:-1] if i not in range(self.A.nodes[self.idx].start,self.A.nodes[self.idx].end)]
                 else:
                     path_pos_str = [(GraphState.sent[i]['pos'],GraphState.sent[i]['rel']) for i in path[1:-1]]
                     path_x_str_pp = [('X','X') if not isprep(GraphState.sent[i]) else GraphState.sent[i]['form']  for i in path[1:-1]]
@@ -514,9 +514,9 @@ class GraphState(object):
                     path,direction = GraphState.deptree.get_path(self.cidx,parent_to_attach)
                 #path_x_str=[(GraphState.sent[i]['pos'],GraphState.sent[i]['rel']) for i in path[1:-1]]
                     if self.A.nodes[parent_to_attach].end - self.A.nodes[parent_to_attach].start > 1:                
-                        apath_x_str = [('X','X') for i in path[1:-1] if i not in list(range(self.A.nodes[parent_to_attach].start,self.A.nodes[parent_to_attach].end))]
-                        apath_pos_str = [(GraphState.sent[i]['pos'],GraphState.sent[i]['rel']) for i in path[1:-1] if i not in list(range(self.A.nodes[parent_to_attach].start,self.A.nodes[parent_to_attach].end))]
-                        apath_pos_str_pp = [(GraphState.sent[i]['pos'],GraphState.sent[i]['rel']) if not isprep(GraphState.sent[i]) else GraphState.sent[i]['form'] for i in path[1:-1] if i not in list(range(self.A.nodes[parent_to_attach].start,self.A.nodes[parent_to_attach].end))]
+                        apath_x_str = [('X','X') for i in path[1:-1] if i not in range(self.A.nodes[parent_to_attach].start,self.A.nodes[parent_to_attach].end)]
+                        apath_pos_str = [(GraphState.sent[i]['pos'],GraphState.sent[i]['rel']) for i in path[1:-1] if i not in range(self.A.nodes[parent_to_attach].start,self.A.nodes[parent_to_attach].end)]
+                        apath_pos_str_pp = [(GraphState.sent[i]['pos'],GraphState.sent[i]['rel']) if not isprep(GraphState.sent[i]) else GraphState.sent[i]['form'] for i in path[1:-1] if i not in range(self.A.nodes[parent_to_attach].start,self.A.nodes[parent_to_attach].end)]
                     else:
                         apath_x_str = [('X','X') for i in path[1:-1]]
                         apath_pos_str = [(GraphState.sent[i]['pos'],GraphState.sent[i]['rel']) for i in path[1:-1]]
@@ -649,7 +649,7 @@ class GraphState(object):
 
     def get_gold_tag_graph(self):
         gold_tag_graph = copy.deepcopy(self.A)
-        for nid in list(gold_tag_graph.nodes.keys())[:]:
+        for nid in gold_tag_graph.nodes.keys()[:]:
             if nid in self.gold_graph.nodes:
                 gold_tag_label = self.gold_graph.get_node_tag(nid)
                 gold_tag_graph.set_node_tag(nid,gold_tag_label)
@@ -675,7 +675,7 @@ class GraphState(object):
 
         parsed_tuples = self.A.tuples()
         if self.verbose > 1:
-            print('Parsed tuples:'+str(parsed_tuples), file=sys.stderr) 
+            print >> sys.stderr, 'Parsed tuples:'+str(parsed_tuples) 
         num_parsed_arcs = len(parsed_tuples)
         gold_tuples = self.gold_graph.tuples()
         num_gold_arcs = len(gold_tuples)
@@ -765,7 +765,7 @@ class GraphState(object):
         #if GraphState.model.weight[act_idx].shape[0] <= GraphState.model.feature_codebook[act_idx].size():
         #    GraphState.model.reshape_weight(act_idx)        
         weight = GraphState.model.weight[act_idx] if train else GraphState.model.avg_weight[act_idx]
-        feat_idx = list(map(GraphState.model.feature_codebook[act_idx].get_index,feature))
+        feat_idx = map(GraphState.model.feature_codebook[act_idx].get_index,feature)
         return np.sum(weight[ [i for i in feat_idx if i is not None] ],axis = 0)
         
     def make_feat(self,action):
@@ -783,7 +783,7 @@ class GraphState(object):
 
     def apply(self,action):
         action_type = action['type']
-        other_params = dict([(k,v) for k,v in list(action.items()) if k!='type' and v is not None])
+        other_params = dict([(k,v) for k,v in action.items() if k!='type' and v is not None])
         self.action_history.append(action)
         return getattr(self,GraphState.action_table[action_type])(**other_params)
         
@@ -942,7 +942,7 @@ class GraphState(object):
             ctok = GraphState.sent[cidx]
             tok = GraphState.sent[idx]
             ctok['pred'] = ctok.get('pred',{})
-            ctok['pred'].update(dict((k,v) for k,v in list(tok.get('pred',{}).items()) if k!=cidx))
+            ctok['pred'].update(dict((k,v) for k,v in tok.get('pred',{}).items() if k!=cidx))
             for prd in tok.get('pred',{}).copy():
                 if prd != cidx:
                     try:
@@ -955,7 +955,7 @@ class GraphState(object):
                     
                         
             ctok['args'] = ctok.get('args',{})
-            ctok['args'].update(dict((k,v) for k,v in list(tok.get('args',{}).items()) if k!=cidx))
+            ctok['args'].update(dict((k,v) for k,v in tok.get('args',{}).items() if k!=cidx))
             for arg in tok.get('args',{}).copy():
                 if arg != cidx:
                     try:
@@ -1203,7 +1203,7 @@ class GraphState(object):
                     else:
                         amr._add_triple(pvar,rel_label,cvar)
             except ValueError as e:
-                print(e)
+                print e
                 #print span_graph.graphID
                 
         if len(amr.roots) > 1:
@@ -1212,7 +1212,7 @@ class GraphState(object):
             for multi_root in amr.roots:
                 amr._add_triple(FAKE_ROOT_VAR,FAKE_ROOT_EDGE,multi_root)
             amr.roots = [FAKE_ROOT_VAR]
-        elif len(amr.roots) == 0 and len(list(amr.keys())) != 0:
+        elif len(amr.roots) == 0 and len(amr.keys()) != 0:
             foo =  amr[FAKE_ROOT_VAR]
             amr.node_to_concepts[FAKE_ROOT_VAR] = FAKE_ROOT_CONCEPT
             for mlt_root in span_graph.get_multi_roots():
@@ -1225,7 +1225,7 @@ class GraphState(object):
             amr.node_to_concepts[FAKE_ROOT_VAR] = FAKE_ROOT_CONCEPT
             amr._add_triple(FAKE_ROOT_VAR,FAKE_ROOT_EDGE,amr.roots[0])
             amr.roots = [FAKE_ROOT_VAR]
-        elif len(list(amr.keys())) == 0:
+        elif len(amr.keys()) == 0:
             foo =  amr[FAKE_ROOT_VAR]
             amr.node_to_concepts[FAKE_ROOT_VAR] = FAKE_ROOT_CONCEPT
             for mlt_root in span_graph.get_multi_roots():
