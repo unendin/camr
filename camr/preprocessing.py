@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import sys,argparse,re,os
-from stanfordnlp.corenlp import *
+from corenlp import StanfordCoreNLP
 from common.AMRGraph import *
 from pprint import pprint
 import cPickle as pickle
@@ -447,21 +447,6 @@ def preprocess(input_file,START_SNLP=True,INPUT_AMR='amr',PRP_FORMAT='plain'):
         else:
             raise Exception('Unknow preprocessed file format %s' % PRP_FORMAT)
 
-        
-        # tmp_prp_filename = tmp_sent_filename+'.prp'
-        # proc1 = StanfordCoreNLP()
-
-        # # preprocess 1: tokenization, POS tagging and name entity using Stanford CoreNLP
-        # if START_SNLP and not os.path.exists(tmp_prp_filename):
-        #     print >> log, "Start Stanford CoreNLP ..."
-        #     proc1.setup()
-        #     instances = proc1.parse(tmp_sent_filename)
-        # elif os.path.exists(tmp_prp_filename): # found cache file
-        #     print >> log, 'Read token,lemma,name entity file %s...' % (tmp_prp_filename)
-        #     instances = proc1.parse(tmp_sent_filename)
-        # else:
-        #     raise Exception('No cache file %s has been found. set START_SNLP=True to start corenlp.' % (tmp_prp_filename))
-        
 
         tok_sent_filename = tmp_sent_filename+'.tok' # write tokenized sentence file
         if not os.path.exists(tok_sent_filename):
@@ -560,55 +545,8 @@ def preprocess(input_file,START_SNLP=True,INPUT_AMR='amr',PRP_FORMAT='plain'):
         else:
             raise IOError('Rich name entity file %s not found!' % (rne_filename))
 
-        
-    return instances
-'''
-def _init_instances(sent_file,amr_strings,comments):
-    print >> log, "Preprocess 1:pos, ner and dependency using stanford parser..."
-    proc = StanfordCoreNLP()
-    instances = proc.parse(sent_file)
-    
-    
-    print >> log, "Preprocess 2:adding amr and generating gold graph"
-    assert len(instances) == len(amr_strings)
-    for i in range(len(instances)):
-        amr = AMR.parse_string(amr_strings[i])
-        instances[i].addAMR(amr)
-        alignment = Aligner.readJAMRAlignment(amr,comments[i]['alignments'])
-        ggraph = SpanGraph.init_ref_graph(amr,alignment,comments[i]['snt'])
-        ggraph.pre_merge_netag(instances[i])
-        instances[i].addGoldGraph(ggraph)
-
     return instances
 
-
-def add_JAMR_align(instances,aligned_amr_file):
-    comments,amr_strings = readAMR(aligned_amr_file)
-    for i in range(len(instances)):
-        amr = AMR.parse_string(amr_strings[i])
-        alignment = Aligner.readJAMRAlignment(amr,comments[i]['alignments'])
-        ggraph = SpanGraph.init_ref_graph(amr,alignment,instances[i].tokens)
-        ggraph.pre_merge_netag(instances[i])
-        #print >> log, "Graph ID:%s\n%s\n"%(ggraph.graphID,ggraph.print_tuples())
-        instances[i].addAMR(amr)
-        instances[i].addGoldGraph(ggraph)
-
-    #output_file = aligned_amr_file.rsplit('.',1)[0]+'_dataInst.p'
-    #pickle.dump(instances,open(output_file,'wb'),pickle.HIGHEST_PROTOCOL)
-
-def preprocess_aligned(aligned_amr_file,writeToFile=True):
-    comments,amr_strings = readAMR(aligned_amr_file)
-    sentences = [c['tok'] for c in comments]
-    tmp_sentence_file = aligned_amr_file.rsplit('.',1)[0]+'_sent.txt'
-    _write_sentences(tmp_sentence_file,sentences)
-    
-    instances = _init_instances(tmp_sentence_file,amr_strings,comments)
-    if writeToFile:
-        output_file = aligned_amr_file.rsplit('.',1)[0]+'_dataInst.p'
-        pickle.dump(instances,open(output_file,'wb'),pickle.HIGHEST_PROTOCOL)
-        
-    return instances
-'''
 
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser(description="preprocessing for training/testing data")
