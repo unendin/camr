@@ -7,12 +7,11 @@ import sys
 import json
 import pickle
 #import simplejson as json
-from constants import *
-from common.util import Alphabet,ETag,ConstTag
+from camr.constants import *
+from camr.common.util import Alphabet,ETag,ConstTag
 import importlib
 from collections import defaultdict
 import logging
-from builtins import *
 
 _FEATURE_TEMPLATES_FILE = './feature/basic_abt_feats.templates'
 

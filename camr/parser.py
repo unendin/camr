@@ -4,14 +4,14 @@
 # author Chuan Wang
 # March 28,2014
 
-from common.util import *
-from constants import *
-from graphstate import GraphState
-from newstate import Newstate
+from camr.common.util import *
+from camr.constants import *
+from camr.graphstate import GraphState
+from camr.newstate import Newstate
 import optparse
 import sys,copy,time,datetime
 import numpy as np
-from perceptron import Perceptron
+from camr.perceptron import Perceptron
 import pickle as pickle
 #import matplotlib
 #matplotlib.use('Agg')

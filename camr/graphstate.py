@@ -4,13 +4,13 @@
 # initialized with dependency graph
 #
 
-import copy,sys,re
+import copy, sys, re
 import pickle
-from parser import *
-from common.util import *
-from constants import *
-from common.SpanGraph import SpanGraph
-from common.AMRGraph import *
+from camr.parser import *
+from camr.common.util import *
+from camr.constants import *
+from camr.common.SpanGraph import SpanGraph
+from camr.common.AMRGraph import *
 import numpy as np
 
 

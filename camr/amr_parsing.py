@@ -11,16 +11,16 @@ import sys,codecs,time,string
 import re
 import random
 import pickle as pickle
-from .common.SpanGraph import *
-from .common.AMRGraph import *
+from camr.common.SpanGraph import *
+from camr.common.AMRGraph import *
 import subprocess
-from .Aligner import *
-from .parser import *
-from .model import Model
+from camr.Aligner import *
+from camr.parser import *
+from camr.model import Model
 import argparse
-from .preprocessing import *
-from . import constants
-from .graphstate import GraphState
+from camr.preprocessing import *
+from camr import constants
+from camr.graphstate import GraphState
 import imp
 import logging
 

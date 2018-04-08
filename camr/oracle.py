@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 # class for different oracles
-from .constants import *
+from camr.constants import *
 import sys
 
 class Oracle():
