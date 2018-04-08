@@ -351,13 +351,19 @@ class Model():
         fh = os.path.join(package_directory, model_filename)
         #with contextlib.closing(bz2.BZ2File(model_filename, 'rb')) as f:
         logging.info(fh)
+        import dill
+        # with open(fh, 'rb') as f:
+        #     for i, line in enumerate(f):
+        #         logging.info(line)
+        #         if i > 10:
+        #             break
         with open(fh, 'rb') as f:
-            return pickle.load(f, encoding='bytes')
+            model = dill.load(f)
         # deal with module name conflict
         #tmp = sys.path.pop(0)
         #model.avg_weight = np.load(open(model_filename+'.weight', 'rb'))
         #sys.path.insert(0,tmp)
 
-        # return model
+        return model
         #return pickle.load(open(model_filename,'rb'))
 
