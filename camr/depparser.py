@@ -21,12 +21,14 @@ class CharniakParser(DepParser):
         """
         use Charniak parser to parse sentences then convert results to Stanford Dependency
         """
+        import bllipparser
         from bllipparser.ModelFetcher import download_and_install_model
         from bllipparser import RerankingParser
+        print(bllipparser.__file__)
         #path_to_model = './bllip-parser/models/WSJ+Gigaword'
         #if not.path.exists(path_to_model):
         model_type = 'WSJ+Gigaword'
-        path_to_model = download_and_install_model(model_type,'./bllip-parser/models')
+        path_to_model = download_and_install_model(model_type,'/Users/ted/Documents/dossier10/lib/camr/camr/bllip-parser/models')
         print "Loading Charniak parser model: %s ..." % (model_type)
         rrp = RerankingParser.from_unified_model_dir(path_to_model)
         print "Begin Charniak parsing ..."
