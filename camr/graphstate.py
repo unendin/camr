@@ -137,7 +137,10 @@ class GraphState(object):
                         for tok in GraphState.sent] # atomic features for current state
         
     def pcopy(self):
-        return pickle.loads(pickle.dumps(self,-1))
+        ccopy_ = copy.copy(self)
+        # pcopy_ = pickle.loads(pickle.dumps(self, -1))
+        # logging.info(pcopy_)
+        return ccopy_
     
     def is_terminal(self):
         """done traverse the graph"""
@@ -292,6 +295,9 @@ class GraphState(object):
         # immediate left sibling, immediate right sibling and second right sibling
         if p1 != NOT_ASSIGNED and len(self.A.nodes[self.A.nodes[idx].parents[0]].children) > 1:
             children = self.A.nodes[self.A.nodes[idx].parents[0]].children
+            children = [str(x) for x in children] #ESM
+            idx = str(idx)
+            logging.info(children)
             idx_order = sorted(children).index(idx)
             if idx_order > 0:
                 lsb = GraphState.sent[children[idx_order-1]] if isinstance(children[idx_order-1],int) else ABT_TOKEN
@@ -766,7 +772,12 @@ class GraphState(object):
         #    GraphState.model.reshape_weight(act_idx)        
         weight = GraphState.model.weight[act_idx] if train else GraphState.model.avg_weight[act_idx]
         feat_idx = list(map(GraphState.model.feature_codebook[act_idx].get_index,feature))
-        return np.sum(weight[ [i for i in feat_idx if i is not None] ],axis = 0)
+        try:
+            return np.sum(weight[ [i for i in feat_idx if i is not None] ],axis = 0)
+        except:
+            logging.critical('feat_idx out of range')
+            return np.sum(weight[ [i for i in feat_idx if i is not None and i < weight.size] ],axis = 0)
+
         
     def make_feat(self,action):
         feat = GraphState.model.feats_generator(self,action)
@@ -783,22 +794,35 @@ class GraphState(object):
 
     def apply(self,action):
         action_type = action['type']
+        logging.info(action)
         other_params = dict([(k,v) for k,v in list(action.items()) if k!='type' and v is not None])
         self.action_history.append(action)
+        logging.info(other_params)
+
+        attr_ = getattr(self, GraphState.action_table[action_type])
+        logging.info(GraphState.action_table[action_type])
+        logging.info(attr_.__dict__)
+        logging.info(attr_(**other_params))
         return getattr(self,GraphState.action_table[action_type])(**other_params)
         
 
     def next1(self, edge_label=None):
         newstate = self.pcopy()
-        if edge_label and edge_label is not START_EDGE:newstate.A.set_edge_label(newstate.idx,newstate.cidx,edge_label)
-        newstate.beta.pop()            
+        if edge_label and edge_label is not START_EDGE:
+            newstate.A.set_edge_label(newstate.idx,newstate.cidx,edge_label)
+        logging.info(newstate.__dict__)
+        if newstate.beta:
+            newstate.beta.pop()
         newstate.cidx = newstate.beta.top() if newstate.beta else None
         #newstate.action_history.append(NEXT1)
             
         return newstate
 
     def next2(self, tag=None):
+        logging.info('success')
         newstate = self.pcopy()
+        logging.info('success')
+
         if tag: newstate.A.set_node_tag(newstate.idx,tag)
         newstate.sigma.pop()
         newstate.idx = newstate.sigma.top()

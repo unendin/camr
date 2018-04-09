@@ -3,13 +3,13 @@ import sys,argparse,re,os
 from camr.corenlp import StanfordCoreNLP
 from camr.common.AMRGraph import *
 from pprint import pprint
-import pickle as pickle
 from camr.Aligner import Aligner
 from camr.common.SpanGraph import SpanGraph
-from camr.depparser import CharniakParser,StanfordDepParser,ClearDepParser,TurboDepParser, MateDepParser
+from camr.depparser import CharniakParser, StanfordDepParser, ClearDepParser, TurboDepParser, MateDepParser
 from collections import OrderedDict
 from camr import constants
 import xml.etree.ElementTree as ET
+import logging
 
 log = sys.stdout
 
@@ -268,20 +268,24 @@ def _add_dependency(instances,result,FORMAT="stanford"):
                     # some string may start with @; change the segmenter
                     m = re.match(r'(?P<lemma>[^\^]+|\^*(?=-))(\^(?P<trace>[^-]+))?-(?P<index>[^-]+)', r_lemma)
                     try:
-                        r_lemma,r_trace, r_index = m.group('lemma'), m.group('trace'), m.group('index')
+                        r_lemma, r_trace, r_index = m.group('lemma'), m.group('trace'), m.group('index')
                     except AttributeError:
-                        import pdb
-                        pdb.set_trace()
+                        raise
+                        # import pdb
+                        # pdb.set_trace()
+
 
                     if r_index != 'null':
                         # print >> sys.stderr, line
                         try:
                             instances[i].addDependency( rel, l_index, r_index )
                         except IndexError:
-                            import pdb
-                            pdb.set_trace()
+                            logging.critical(instances)
+                            raise
+                            # import pdb
+                            # pdb.set_trace()
                     if r_trace is not None:
-                        instances[i].addTrace( rel, l_index, r_trace )                      
+                        instances[i].addTrace(rel, l_index, r_trace)
                 
             else:
                 i += 1
@@ -321,7 +325,13 @@ def preprocess(input_file,START_SNLP=True,INPUT_AMR='amr',PRP_FORMAT='plain'):
     tmp_sent_filename = None
     instances = None
     tok_sent_filename = None
-    
+
+    logging.info(input_file)
+    logging.info(START_SNLP)
+    logging.info(INPUT_AMR)
+    logging.info(PRP_FORMAT)
+
+
     if INPUT_AMR == 'amr': # the input file is amr annotation
         
         amr_file = input_file
@@ -436,7 +446,9 @@ def preprocess(input_file,START_SNLP=True,INPUT_AMR='amr',PRP_FORMAT='plain'):
                 proc1.setup()
 
             print('Read token,lemma,name entity file %s...' % (tmp_prp_filename), file=log)            
+            logging.info(tmp_sent_filename)
             instances = proc1.parse(tmp_sent_filename)
+            logging.info(instances)
 
         elif PRP_FORMAT == 'xml': # rather than using corenlp plain format; using xml format; also we don't use corenlp wrapper anymore
             tmp_prp_filename = tmp_sent_filename+'.xml'
@@ -490,8 +502,9 @@ def preprocess(input_file,START_SNLP=True,INPUT_AMR='amr',PRP_FORMAT='plain'):
             #raise IOError('Converted dependency file %s not founded' % (dep_filename))
         print('Read dependency file %s...' % (dep_filename))
         dep_result = codecs.open(dep_filename,'r',encoding='utf-8').read()
-        _add_dependency(instances,dep_result,constants.FLAG_DEPPARSER)
-            
+        _add_dependency(instances, dep_result, constants.FLAG_DEPPARSER)
+        _add_dependency(instances, dep_result, constants.FLAG_DEPPARSER)
+
     elif constants.FLAG_DEPPARSER == "clear":
         dep_filename = tok_sent_filename+'.clear.dep'
         if os.path.exists(dep_filename):

@@ -391,7 +391,7 @@ def main():
         
     elif args.mode == 'parse': # actual parsing
         logging.info('success')
-        # test_instances = preprocess(amr_file,START_SNLP=False,INPUT_AMR=args.amrfmt,PRP_FORMAT=args.prpfmt)
+        test_instances = preprocess(amr_file,START_SNLP=False,INPUT_AMR=args.amrfmt,PRP_FORMAT=args.prpfmt)
         logging.info('success')
 
         if args.section != 'all':
@@ -405,6 +405,7 @@ def main():
         parser = Parser(model=model,oracle_type=DET_T2G_ORACLE_ABT,action_type=args.actionset,verbose=args.verbose,elog=experiment_log)
         print("BEGIN PARSING")
         span_graph_pairs,results = parser.parse_corpus_test(test_instances)
+        logging.info('success')
         parsed_suffix = '%s.%s.parsed'%(args.section,args.model.split('.')[-2])
         write_parsed_amr(results,test_instances,amr_file,suffix=parsed_suffix)
         #write_span_graph(span_graph_pairs,test_instances,amr_file,suffix='spg.50')

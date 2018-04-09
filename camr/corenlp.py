@@ -78,18 +78,21 @@ def parse_parser_results_new(text):
     following_line = None
     state = STATE_START
     #for line in re.split("\r\n(?![^\[]*\])",text):
-    seqs = re.split("\r\n", text)
+    seqs = re.split("\n", text)
     i = 0
 
     #for line in re.split("\r\n", text):
     while i < len(seqs):
         line = seqs[i]
         line = line.strip()
-
+        logging.info(line)
+        logging.info(len(seqs))
         if line.startswith('NLP>'): # end
+            logging.info('NLP>')
             if data: data_list.append(data) # add last one
             break
         if line.startswith("Sentence #"):
+            logging.info('Sentence#')
             if data: data_list.append(data)
             data = Data()
             if SENTENCE_NO_PATTERN.match(line):
@@ -100,24 +103,29 @@ def parse_parser_results_new(text):
             i += 1
             
         elif state == STATE_SENT_ERROR:
+            logging.info('STATE_SENT_ERROR')
             line = lastline + line
             assert SENTENCE_NO_PATTERN.match(line) is not None
             state = STATE_TEXT
             i += 1
             
         elif state == STATE_TEXT_ERROR:
+            logging.info('STATE_TEXT_ERROR')
             line = line + following_line
             data.addText(line)
             state = STATE_WORDS
             i += 2
         
         elif state == STATE_TEXT:
+            logging.info('STATE_TEXT')
             Data.newSen()
             data.addText(line)
             state = STATE_WORDS
             i += 1
         
         elif state == STATE_WORDS:
+            logging.info('STATE_WORDS')
+
             if len(line) == 0:
                 i += 1
                 continue
@@ -327,7 +335,7 @@ class StanfordCoreNLP(object):
         instances = []
         prp_filename = sent_filename+'.prp' # preprocessed file
         if os.path.exists(prp_filename):
-
+            logging.info('success')
             prp_result = open(prp_filename,'r').read()
             for i, result in enumerate(prp_result.split('-'*40)[1:]):
                 if i > 0 and i % 100 == 0:
@@ -335,7 +343,9 @@ class StanfordCoreNLP(object):
                     sys.stdout.flush()
         
                 try:
+                    logging.info(result)
                     data = parse_parser_results_new(result)
+                    logging.info(data)
                 except Exception as e:
                     if VERBOSE: print(traceback.format_exc())
                     raise e

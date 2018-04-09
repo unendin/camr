@@ -345,54 +345,55 @@ class Model():
         
     @staticmethod
     def load_model(model_filename):
-        def intkeys(d):
-            return {int(k): v for k, v in d.items()}
+        if 0 ==1:
+            def intkeys(d):
+                return {int(k): v for k, v in d.items()}
 
-        import json
-        logging.info('loading json')
-        model_dict = json.load(open(model_filename, 'rb'))
-        logging.info('instantiating model ...')
-        model_instance = Model()
-        logging.info('starting tag_codebook')
-        for k in model_dict['tag_codebook']:
-            # is thier a tag with float indices
-            model_instance.tag_codebook[k] = Alphabet.from_dict(
-                model_dict['tag_codebook'][k])
-        logging.info('starting _feature_templates_list')
-        model_instance._feature_templates_list = model_dict['_feature_templates_list']
-        logging.info('starting _feats_gen_filename')
-        model_instance._feats_gen_filename = model_dict['_feats_gen_filename']
-        logging.info('starting _feats_generator')
-        model_instance.feats_generator = importlib.import_module(
-            'temp.' + model_instance._feats_gen_filename).generate_features
-        # model_instance.weight = [np.array(w) for w in model_dict['weight']]
-        # model_instance.aux_weight = [np.array(w) for w in model_dict['aux_weight']]
-        model_instance.weight = None
-        model_instance.aux_weight = None
-        logging.info('starting avg_weight')
-        model_instance.avg_weight = [np.array(agw) for agw in
-                                     model_dict['avg_weight']]
-        logging.info('starting token_to_concept_table')
-        model_instance.token_to_concept_table = defaultdict(set, [(k, set(v)) for k, v in model_dict[
-                                                                 'token_to_concept_table'].items()])
-        logging.info('starting class codebook')
-        model_instance.class_codebook = Alphabet.from_dict(
-            intkeys(model_dict['class_codebook']))
+            import json
+            logging.info('loading json')
+            model_dict = json.load(open(model_filename, 'rb'))
+            logging.info('instantiating model ...')
+            model_instance = Model()
+            logging.info('starting tag_codebook')
+            for k in model_dict['tag_codebook']:
+                # is thier a tag with float indices
+                model_instance.tag_codebook[k] = Alphabet.from_dict(
+                    model_dict['tag_codebook'][k])
+            logging.info('starting _feature_templates_list')
+            model_instance._feature_templates_list = model_dict['_feature_templates_list']
+            logging.info('starting _feats_gen_filename')
+            model_instance._feats_gen_filename = model_dict['_feats_gen_filename']
+            logging.info('starting _feats_generator')
+            model_instance.feats_generator = importlib.import_module(
+                'temp.' + model_instance._feats_gen_filename).generate_features
+            # model_instance.weight = [np.array(w) for w in model_dict['weight']]
+            # model_instance.aux_weight = [np.array(w) for w in model_dict['aux_weight']]
+            model_instance.weight = None
+            model_instance.aux_weight = None
+            logging.info('starting avg_weight')
+            model_instance.avg_weight = [np.array(agw) for agw in
+                                         model_dict['avg_weight']]
+            logging.info('starting token_to_concept_table')
+            model_instance.token_to_concept_table = defaultdict(set, [(k, set(v)) for k, v in model_dict[
+                                                                     'token_to_concept_table'].items()])
+            logging.info('starting class codebook')
+            model_instance.class_codebook = Alphabet.from_dict(
+                intkeys(model_dict['class_codebook']))
 
-        logging.info('starting feature codebook')
-        # model_instance.feature_codebook = {}
-        # for i, v in enumerate(model_dict['class_codebook'].values()):
-        #     model_instance.feature_codebook[v] = Alphabet.from_dict(model_dict['feature_codebook'][str(i)])
+            logging.info('starting feature codebook')
+            # model_instance.feature_codebook = {}
+            # for i, v in enumerate(model_dict['class_codebook'].values()):
+            #     model_instance.feature_codebook[v] = Alphabet.from_dict(model_dict['feature_codebook'][str(i)])
 
-        model_instance.feature_codebook = {}
-        cookbook_list = [Alphabet.from_dict(v) for v in
-                         model_dict['feature_codebook'].values()]
-        idx = model_dict['class_codebook'].values()
-        for i, l in enumerate(cookbook_list):
-            model_instance.feature_codebook[idx[i]] = l
+            model_instance.feature_codebook = {}
+            cookbook_list = [Alphabet.from_dict(v) for v in
+                             model_dict['feature_codebook'].values()]
+            idx = list(model_dict['class_codebook'].values())
+            for i, l in enumerate(cookbook_list):
+                model_instance.feature_codebook[idx[i]] = l
 
-        logging.info('starting rel_codebook')
-        model_instance.rel_codebook = Alphabet.from_dict(model_dict['rel_codebook'])
+            logging.info('starting rel_codebook')
+            model_instance.rel_codebook = Alphabet.from_dict(model_dict['rel_codebook'])
 
         # # synopsis
         # m = model_instance
@@ -421,7 +422,13 @@ class Model():
         # logging.info(m.avg_weight[0])
         # logging.info(m.avg_weight[1])
         # logging.info(m.avg_weight[5])
-
+        # fn = 'data/models/amr_anno_py3.m'
+        # with open(fn, 'wb') as f:
+        #     pickle.dump(model_instance, f)
+        import dill
+        fn = 'data/models/amr_anno_py3.m'
+        with open(fn, 'rb') as f:
+            model_instance = dill.load(f)
         return model_instance
 
 

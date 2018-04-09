@@ -17,6 +17,8 @@ import pickle as pickle
 #matplotlib.use('Agg')
 #import matplotlib.pyplot as plt
 
+import logging
+
 DRAW_GRAPH = False
 WRITE_FAKE_AMR = False
 OUTPUT_PARSED_AMR = True
@@ -32,7 +34,7 @@ class Parser(object):
     rtx = None # array for store the rumtime data
     rty = None #
     
-    def __init__(self,model=None,oracle_type=DETERMINE_TREE_TO_GRAPH_ORACLE_SC,action_type='basic',verbose=1,elog=sys.stdout):
+    def __init__(self,model=None,oracle_type=DETERMINE_TREE_TO_GRAPH_ORACLE_SC,action_type='basic',verbose=5,elog=sys.stdout):
         self.sent = ''
         self.oracle_type=oracle_type
         self.verbose = verbose
@@ -136,7 +138,9 @@ class Parser(object):
         start_time = time.time()
         parsed_amr = []
         span_graph_pairs = []
-        
+        logging.info(instances)
+        logging.info(EVAL)
+
         if EVAL:
             Parser.cm = np.zeros(shape=(len(GraphState.action_table),len(GraphState.action_table)))
             Parser.rtx = []
@@ -258,6 +262,7 @@ class Parser(object):
 
             for i,inst in enumerate(instances,1):
                 per_start_time = time.time()
+                logging.info(inst.__dict__)
                 step,state = self.parse(inst,train=False)
                 per_parse_time = round(time.time()-per_start_time,3)
 
@@ -278,21 +283,29 @@ class Parser(object):
         ref_graph = instance.gold_graph
         step = 0
         pre_state = None
-        
+        logging.info(state)
+        logging.info(instance)
+
         
         while not state.is_terminal():
+            logging.info('success')
+            logging.info(self.verbose)
+
             if self.verbose > 2:
-                print(state.print_config(), file=sys.stderr)
+                print(state.print_config())
             
             #start_time = time.time()
             violated = False
             actions = state.get_possible_actions(train)
+            logging.info(actions)
             #argset = map(Parser.State.model.rel_codebook.get_index,list(state.get_current_argset()))
             #print "Done getactions, %s"%(round(time.time()-start_time,2))
 
             if len(actions) == 1:
                 best_act = actions[0]
                 best_label = None
+                logging.info('success')
+
             else:
                 if train:
                     features = list(map(state.make_feat,actions))
@@ -395,13 +408,16 @@ class Parser(object):
             elif act_to_apply['type'] in ACTION_WITH_TAG:
                 act_to_apply['tag'] = best_label
             pre_state = state
-            state = state.apply(act_to_apply)
-            
-            step += 1
+            logging.info('success')
 
+            state = state.apply(act_to_apply)
+            logging.info('success')
+
+            step += 1
         if self.verbose == 1:
             print(pre_state.print_config(), file=sys.stderr)
-
+        logging.info(step)
+        logging.info(state)
         return (step,state)
 
     def parse_bs(self, instance):

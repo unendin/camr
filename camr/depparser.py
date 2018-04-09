@@ -6,7 +6,7 @@ VERBOSE = True
 logs = sys.stdout
 
 class DepParser(object):
-    
+
     def __init__(self):
         pass
 

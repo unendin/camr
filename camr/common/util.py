@@ -10,8 +10,8 @@ amr graph representaion and parsing util
 from collections import defaultdict
 import re,string
 import numpy as np
-from constants import START_ID
-
+from camr.constants import START_ID
+import logging
 # feature window placeholder
 
 __AUX_PUNCTUATIONS = ["''"]
@@ -278,7 +278,8 @@ class Buffer(deque):
     def __init__(self,alist=[]):
         deque.__init__(self,alist)
         #self.appendleft(START_ID)
-        
+        logging.info(deque)
+
     def top(self):
         return self[0]
     
@@ -286,6 +287,7 @@ class Buffer(deque):
         self.appendleft(v)
     
     def pop(self):
+        logging.info(self)
         return self.popleft()
     
     def isEmpty(self):
@@ -293,6 +295,7 @@ class Buffer(deque):
     
     def __reduce__(self):
         t = deque.__reduce__(self)
+        logging.info(t)
         return (t[0],(t[1][0],)) + t[2:]
         
 class Alphabet(object):
