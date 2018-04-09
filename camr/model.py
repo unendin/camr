@@ -345,36 +345,125 @@ class Model():
         
     @staticmethod
     def load_model(model_filename):
-        import os
-        cwd = os.getcwd()
-        fh = os.path.join(cwd, model_filename)
-        #with contextlib.closing(bz2.BZ2File(model_filename, 'rb')) as f:
-        logging.info(fh)
-        import dill
-        # with open(fh, 'rb') as f:
-        #     for i, line in enumerate(f):
-        #         logging.info(line)
+        def intkeys(d):
+            return {int(k): v for k, v in d.items()}
+
+        import json
+        logging.info('loading json')
+        model_dict = json.load(open(model_filename, 'rb'))
+        logging.info('instantiating model ...')
+        model_instance = Model()
+        logging.info('starting tag_codebook')
+        for k in model_dict['tag_codebook']:
+            # is thier a tag with float indices
+            model_instance.tag_codebook[k] = Alphabet.from_dict(
+                model_dict['tag_codebook'][k])
+        logging.info('starting _feature_templates_list')
+        model_instance._feature_templates_list = model_dict['_feature_templates_list']
+        logging.info('starting _feats_gen_filename')
+        model_instance._feats_gen_filename = model_dict['_feats_gen_filename']
+        logging.info('starting _feats_generator')
+        model_instance.feats_generator = importlib.import_module(
+            'temp.' + model_instance._feats_gen_filename).generate_features
+        # model_instance.weight = [np.array(w) for w in model_dict['weight']]
+        # model_instance.aux_weight = [np.array(w) for w in model_dict['aux_weight']]
+        model_instance.weight = None
+        model_instance.aux_weight = None
+        logging.info('starting avg_weight')
+        model_instance.avg_weight = [np.array(agw) for agw in
+                                     model_dict['avg_weight']]
+        logging.info('starting token_to_concept_table')
+        model_instance.token_to_concept_table = defaultdict(set, [(k, set(v)) for k, v in model_dict[
+                                                                 'token_to_concept_table'].items()])
+        logging.info('starting class codebook')
+        model_instance.class_codebook = Alphabet.from_dict(
+            intkeys(model_dict['class_codebook']))
+
+        logging.info('starting feature codebook')
+        # model_instance.feature_codebook = {}
+        # for i, v in enumerate(model_dict['class_codebook'].values()):
+        #     model_instance.feature_codebook[v] = Alphabet.from_dict(model_dict['feature_codebook'][str(i)])
+
+        model_instance.feature_codebook = {}
+        cookbook_list = [Alphabet.from_dict(v) for v in
+                         model_dict['feature_codebook'].values()]
+        idx = model_dict['class_codebook'].values()
+        for i, l in enumerate(cookbook_list):
+            model_instance.feature_codebook[idx[i]] = l
+
+        logging.info('starting rel_codebook')
+        model_instance.rel_codebook = Alphabet.from_dict(model_dict['rel_codebook'])
+
+        # # synopsis
+        # m = model_instance
+        # logging.info(
+        #     '\n\n\n\n\n********************************************\n*******************************\n')
+        # logging.info(m.class_codebook.to_dict())
+        # logging.info(m.feature_codebook)
+        # for k in m.feature_codebook:
+        #
+        #     print('\n\n++++++++++++++=el+++++++++++++++++')
+        #     print(k)
+        #     if isinstance(k, int):
+        #         alpha = m.feature_codebook[k].to_dict()
+        #     else:
+        #         alpha = k.to_dict()
+        #
+        #     i = 0
+        #     for key, val in alpha.items():
+        #         print(key, val)
+        #         i += 1
         #         if i > 10:
         #             break
-        import builtins
-        builtins.file = builtins.open
 
-        from pathlib import Path
-        path = Path('./feature/basic_abt_brown_feats.templates')
-        package_directory = os.path.dirname(os.path.abspath(__file__))
-        os.chdir(package_directory)
-        logging.info(os.getcwd())
-        logging.info(path.is_file())
-        import camr.common as common
-        import camr.constants as constants
-        with open(fh, 'rb') as f:
-            model = pickle._Unpickler(f, encoding='bytes').load()
-        # deal with module name conflict
-        #tmp = sys.path.pop(0)
-        #model.avg_weight = np.load(open(model_filename+'.weight', 'rb'))
-        #sys.path.insert(0,tmp)
+        # same
+        # logging.info(list(m.__dict__.keys()))
+        # logging.info(m.avg_weight[0])
+        # logging.info(m.avg_weight[1])
+        # logging.info(m.avg_weight[5])
+
+        return model_instance
 
 
-        return model
-        #return pickle.load(open(model_filename,'rb'))
 
+
+
+
+
+
+
+        # 
+        #
+        # import os
+        # cwd = os.getcwd()
+        # fh = os.path.join(cwd, model_filename)
+        # #with contextlib.closing(bz2.BZ2File(model_filename, 'rb')) as f:
+        # logging.info(fh)
+        # import dill
+        # # with open(fh, 'rb') as f:
+        # #     for i, line in enumerate(f):
+        # #         logging.info(line)
+        # #         if i > 10:
+        # #             break
+        # import builtins
+        # builtins.file = builtins.open
+        #
+        # from pathlib import Path
+        # path = Path('./feature/basic_abt_brown_feats.templates')
+        # package_directory = os.path.dirname(os.path.abspath(__file__))
+        # os.chdir(package_directory)
+        # logging.info(os.getcwd())
+        # logging.info(path.is_file())
+        # import camr.common as common
+        # import camr.constants as constants
+        # with open(fh, 'rb') as f:
+        #     model = pickle._Unpickler(f, encoding='bytes').load()
+        # # deal with module name conflict
+        # #tmp = sys.path.pop(0)
+        # #model.avg_weight = np.load(open(model_filename+'.weight', 'rb'))
+        # #sys.path.insert(0,tmp)
+        #
+        #
+        # return model
+        # #return pickle.load(open(model_filename,'rb'))
+        #
