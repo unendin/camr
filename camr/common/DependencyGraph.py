@@ -5,7 +5,7 @@
 @author Chuan Wang
 """
 import codecs
-from .util import ListMap,Stack
+from camr.util import ListMap,Stack
 
 class DNode(object):
     def __init__(self,idx,str):

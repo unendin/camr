@@ -6,10 +6,10 @@
 
 import copy
 import sys, re
-from .util import StrLiteral, Polarity, Quantity, ConstTag
-from .util import ispunctuation
-import constants
-from common.AMRGraph import *
+from camr.util import StrLiteral, Polarity, Quantity, ConstTag
+from camr.util import ispunctuation
+import camr.constants
+from camr.common.AMRGraph import *
 from collections import defaultdict
 
 log = sys.stderr
@@ -986,6 +986,7 @@ class SpanGraph(object):
         '''promotion: only add ancestors 2 levels up the current node'''
         cur_p = self.nodes[currentIdx]
         cur = self.nodes[currentChildIdx]
+        logging.info(self.nodes[currentIdx].children)
         children = sorted(self.nodes[currentIdx].children)
         c = children.index(currentChildIdx)
         candidate_parents = set([])
