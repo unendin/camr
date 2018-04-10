@@ -281,9 +281,11 @@ class Buffer(deque):
         logging.info(deque)
 
     def top(self):
+        logging.info(self)
         return self[0]
     
     def push(self,v):
+        logging.info(self)
         self.appendleft(v)
     
     def pop(self):
@@ -291,6 +293,7 @@ class Buffer(deque):
         return self.popleft()
     
     def isEmpty(self):
+        logging.info(self)
         return len(self) == 0
     
     def __reduce__(self):
@@ -371,17 +374,23 @@ class Alphabet(object):
         Create an Alphabet from dictionary
         """
         alphabet = cls()
-        if not index_to_label:
+        if index_to_label:
+
+            alphabet._index_to_label = dictionary
+            alphabet._label_to_index = {}
+            for index, label in alphabet._index_to_label.items():
+                alphabet._label_to_index[label] = index
+
+        else:
             alphabet._label_to_index = dictionary
             #dict([(eval(key),value) if key[0] =='(' else (key,value) for key,value in alphabet_dictionary['_label_to_index'].items()])
             alphabet._index_to_label = {}
-            for label, index in list(alphabet._label_to_index.items()):
-                alphabet._index_to_label[index] = label
-        else:
-            alphabet._index_to_label = dictionary
-            alphabet._label_to_index = {}
-            for index, label in list(alphabet._index_to_label.items()):
-                alphabet._label_to_index[label] = index
+            for label, index in alphabet._label_to_index.items():
+                try:
+                    alphabet._index_to_label[index] = label
+                except:
+                    alphabet._index_to_label[label] = index
+
         # making sure that the dimension agrees
         assert(len(alphabet._index_to_label) == len(alphabet._label_to_index))
         alphabet.num_labels = len(alphabet._index_to_label)

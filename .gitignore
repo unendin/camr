@@ -67,7 +67,8 @@ scripts/*~
 *.gz
 *.zip
 log/
-.DS_Store
+*.DS_Store
+
+camr/data.txt
 camr/.DS_Store
-temp/.DS_Store
 .DS_Store

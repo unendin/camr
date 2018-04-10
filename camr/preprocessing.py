@@ -361,14 +361,14 @@ def preprocess(input_file,START_SNLP=True,INPUT_AMR='amr',PRP_FORMAT='plain'):
                 print("Start Stanford CoreNLP...", file=log)
                 proc1.setup()
 
-            print('Read token,lemma,name entity file %s...' % (tmp_prp_filename), file=log)            
+            logging.info('read token,lemma,name entity file %s...' % (tmp_prp_filename))
             instances = proc1.parse(tmp_sent_filename)
 
         elif PRP_FORMAT == 'xml': # rather than using corenlp plain format; using xml format; also we don't use corenlp wrapper anymore
             tmp_prp_filename = tmp_sent_filename+'.prp.xml'
             if not os.path.exists(tmp_prp_filename):
                 raise Exception("No preprocessed xml file found: %s" % tmp_prp_filename)
-            print('Read token,lemma,name entity file %s...' % (tmp_prp_filename), file=log)
+            logging.info('read token,lemma,name entity file %s...' % (tmp_prp_filename))
             instances = load_xml_instances(tmp_prp_filename)
         else:
             raise Exception('Unknow preprocessed file format %s' % PRP_FORMAT)
@@ -417,7 +417,7 @@ def preprocess(input_file,START_SNLP=True,INPUT_AMR='amr',PRP_FORMAT='plain'):
             proc1.setup()
             instances = proc1.parse(tmp_sent_filename)
         elif os.path.exists(tmp_prp_filename): # found cache file
-            print('Read token,lemma,name entity file %s...' % (tmp_prp_filename), file=log)
+            logging.info('read token,lemma,name entity file %s...' % (tmp_prp_filename))
             instances = proc1.parse(tmp_sent_filename)
         else:
             raise Exception('No cache file %s has been found. set START_SNLP=True to start corenlp.' % (tmp_prp_filename))
@@ -445,16 +445,16 @@ def preprocess(input_file,START_SNLP=True,INPUT_AMR='amr',PRP_FORMAT='plain'):
                 print("Start Stanford CoreNLP...", file=log)
                 proc1.setup()
 
-            print('Read token,lemma,name entity file %s...' % (tmp_prp_filename), file=log)            
+            logging.info('read token,lemma,name entity file %s...' % (tmp_prp_filename))
             logging.info(tmp_sent_filename)
             instances = proc1.parse(tmp_sent_filename)
-            logging.info(instances)
+            logging.info(instances[0].__dict__)
 
         elif PRP_FORMAT == 'xml': # rather than using corenlp plain format; using xml format; also we don't use corenlp wrapper anymore
             tmp_prp_filename = tmp_sent_filename+'.xml'
             if not os.path.exists(tmp_prp_filename):
                 raise Exception("No preprocessed xml file found: %s" % tmp_prp_filename)
-            print('Read token,lemma,name entity file %s...' % (tmp_prp_filename), file=log)
+            logging.info('read token,lemma,name entity file %s...' % (tmp_prp_filename))
             instances = load_xml_instances(tmp_prp_filename)
         else:
             raise Exception('Unknow preprocessed file format %s' % PRP_FORMAT)
@@ -468,8 +468,9 @@ def preprocess(input_file,START_SNLP=True,INPUT_AMR='amr',PRP_FORMAT='plain'):
     if constants.FLAG_DEPPARSER == "stanford":
         dep_filename = tok_sent_filename+'.stanford.dep'
         if os.path.exists(dep_filename):
-            print('Read dependency file %s...' % (dep_filename))                                                                 
+            logging.info('read dependency file %s...' % (dep_filename))                                                                 
             dep_result = codecs.open(dep_filename,'r',encoding='utf-8').read()
+            logging.info(dep_result)
         else:
             dparser = StanfordDepParser()
             dep_result = dparser.parse(tok_sent_filename)
@@ -481,7 +482,7 @@ def preprocess(input_file,START_SNLP=True,INPUT_AMR='amr',PRP_FORMAT='plain'):
     elif constants.FLAG_DEPPARSER == "stanfordConvert":
         dep_filename = tok_sent_filename+'.stanford.parse.dep'
         if os.path.exists(dep_filename):
-            print('Read dependency file %s...' % (dep_filename))
+            logging.info('read dependency file %s...' % (dep_filename))
 
             dep_result = codecs.open(dep_filename,'r',encoding='utf-8').read()
         else:
@@ -500,15 +501,16 @@ def preprocess(input_file,START_SNLP=True,INPUT_AMR='amr',PRP_FORMAT='plain'):
             dparser = CharniakParser()
             dparser.parse(tok_sent_filename)
             #raise IOError('Converted dependency file %s not founded' % (dep_filename))
-        print('Read dependency file %s...' % (dep_filename))
+        logging.info('read dependency file %s...' % (dep_filename))
         dep_result = codecs.open(dep_filename,'r',encoding='utf-8').read()
+        logging.info(dep_result)
         _add_dependency(instances, dep_result, constants.FLAG_DEPPARSER)
         _add_dependency(instances, dep_result, constants.FLAG_DEPPARSER)
 
     elif constants.FLAG_DEPPARSER == "clear":
         dep_filename = tok_sent_filename+'.clear.dep'
         if os.path.exists(dep_filename):
-            print('Read dependency file %s...' % (dep_filename))                                                                 
+            logging.info('read dependency file %s...' % (dep_filename))                                                                 
             dep_result = open(dep_filename,'r').read()
         else:
             dparser = ClearDepParser()
@@ -518,7 +520,7 @@ def preprocess(input_file,START_SNLP=True,INPUT_AMR='amr',PRP_FORMAT='plain'):
     elif constants.FLAG_DEPPARSER == "turbo":
         dep_filename = tok_sent_filename+'.turbo.dep'
         if os.path.exists(dep_filename):
-            print('Read dependency file %s...' % (dep_filename))                                                                 
+            logging.info('read dependency file %s...' % (dep_filename))                                                                 
             dep_result = open(dep_filename,'r').read()
         else:
             dparser = TurboDepParser()
@@ -528,7 +530,7 @@ def preprocess(input_file,START_SNLP=True,INPUT_AMR='amr',PRP_FORMAT='plain'):
     elif constants.FLAG_DEPPARSER == "mate":
         dep_filename = tok_sent_filename+'.mate.dep'
         if os.path.exists(dep_filename):
-            print('Read dependency file %s...' % (dep_filename))                                                                 
+            logging.info('read dependency file %s...' % (dep_filename))                                                                 
             dep_result = open(dep_filename,'r').read()
         else:
             dparser = MateDepParser()

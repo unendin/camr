@@ -68,6 +68,8 @@ def get_dependency_graph(stp_dep,FROMFILE=False):
     return dpg_list
 
 def write_parsed_amr(parsed_amr,instances,amr_file,suffix='parsed',hand_alignments=None):
+    amr_file = 'data/amr_one_sent/gold_sents.txt'
+    suffix = 'parsed'
     output = open(amr_file+'.'+suffix,'w')
     for pamr,inst in zip(parsed_amr,instances):
         if inst.comment:
@@ -160,8 +162,9 @@ def main():
     arg_parser.add_argument('--section',choices=['proxy','all'],default='all',help='choose section of the corpus. Only works for LDC2014T12 dataset.')
 
     args = arg_parser.parse_args()
-
     amr_file = args.amr_file
+    logging.info(amr_file)
+
     instances = None
     train_instance = None
     constants.FLAG_COREF=args.coref

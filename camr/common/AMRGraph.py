@@ -8,10 +8,10 @@
 #since: 2013-11-20
 
 from collections import defaultdict
-from camr.util import *
+from camr.common.util import *
 import re,sys
 from optparse import OptionParser
-from camr.DependencyGraph import *
+from camr.common.DependencyGraph import *
 
 # Error definitions
 class LexerError(Exception):

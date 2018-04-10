@@ -5,16 +5,16 @@
 # author Chuan Wang
 
 import copy
-import sys, re
-from camr.util import StrLiteral, Polarity, Quantity, ConstTag
-from camr.util import ispunctuation
-import camr.constants
+import sys
+import re
+from camr.common.util import StrLiteral, Polarity, Quantity, ConstTag
+from camr.common.util import ispunctuation
+from camr import constants
 from camr.common.AMRGraph import *
 from collections import defaultdict
 
 log = sys.stderr
 debuglevel = 1
-
 
 class SpanNode(object):
 
@@ -137,10 +137,6 @@ class SpanGraph(object):
                     spgraph.add_node(d_node)
                     if dconcept == 'and': and_nodes.add(d_node.start)
                 spgraph.add_edge(hspan.start, dspan.start, edge)
-
-                # if SpanGraph.graphID == 2069:
-        #    import pdb
-        #    pdb.set_trace()
 
         root = SpanNode(0, 1, ['root'], 'O')
         spgraph.add_node(root)

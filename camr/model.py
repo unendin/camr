@@ -287,6 +287,7 @@ class Model():
         #sys.path.append('/temp/')
         print("Importing feature generator!")
         self.feats_generator = importlib.import_module('temp.'+self._feats_gen_filename).generate_features
+        logging.info(self.feats_generator)
 
     def toJSON(self):
         print('Converting model to JSON')
@@ -345,7 +346,9 @@ class Model():
         
     @staticmethod
     def load_model(model_filename):
-        if 0 ==1:
+        mode = 'dill_load'
+
+        if mode == 'json_load':
             def intkeys(d):
                 return {int(k): v for k, v in d.items()}
 
@@ -354,18 +357,51 @@ class Model():
             model_dict = json.load(open(model_filename, 'rb'))
             logging.info('instantiating model ...')
             model_instance = Model()
-            logging.info('starting tag_codebook')
+
+            ### TAG CODEBOOK ###
+            # content/keys (strings) identical but not ordered
+            verbose = 0
+            if verbose:
+                logging.info('''### TAG CODEBOOK ###\n''')
+                logging.info('starting tag_codebook')
             for k in model_dict['tag_codebook']:
-                # is thier a tag with float indices
+                if verbose:
+                    logging.info(k)
+                    Alphabet_ = Alphabet.from_dict(model_dict['tag_codebook'][k])
+                    logging.info(Alphabet_)
+                    logging.info(Alphabet_.to_dict())
                 model_instance.tag_codebook[k] = Alphabet.from_dict(
                     model_dict['tag_codebook'][k])
+
+            ### TOKEN_TO_CONCEPT_TABLE ###
+            verbose = 0
+            logging.info('starting token_to_concept_table')
+            model_instance.token_to_concept_table = defaultdict(set)
+            for k, v in model_dict['token_to_concept_table'].items():
+                model_instance.token_to_concept_table[k] = set(v)
+            if verbose:
+                ii = 0
+                for k, v in model_instance.token_to_concept_table.items():
+                    logging.info(k)
+                    logging.info(v)
+                    ii += 1
+                    if ii > 20:
+                        break
+
+            # model_instance.token_to_concept_table = defaultdict(set, [(k, set(v)) for k, v in model_dict[
+            #                                                          'token_to_concept_table'].items()])
+
+
             logging.info('starting _feature_templates_list')
             model_instance._feature_templates_list = model_dict['_feature_templates_list']
             logging.info('starting _feats_gen_filename')
             model_instance._feats_gen_filename = model_dict['_feats_gen_filename']
             logging.info('starting _feats_generator')
             model_instance.feats_generator = importlib.import_module(
-                'temp.' + model_instance._feats_gen_filename).generate_features
+                'camr.temp.' + model_instance._feats_gen_filename).generate_features
+
+            # _feats_gen_filename: feats_gen_basic_abt_brown_feats
+
             # model_instance.weight = [np.array(w) for w in model_dict['weight']]
             # model_instance.aux_weight = [np.array(w) for w in model_dict['aux_weight']]
             model_instance.weight = None
@@ -373,104 +409,114 @@ class Model():
             logging.info('starting avg_weight')
             model_instance.avg_weight = [np.array(agw) for agw in
                                          model_dict['avg_weight']]
-            logging.info('starting token_to_concept_table')
-            model_instance.token_to_concept_table = defaultdict(set, [(k, set(v)) for k, v in model_dict[
-                                                                     'token_to_concept_table'].items()])
+
+
             logging.info('starting class codebook')
             model_instance.class_codebook = Alphabet.from_dict(
                 intkeys(model_dict['class_codebook']))
 
             logging.info('starting feature codebook')
-            # model_instance.feature_codebook = {}
-            # for i, v in enumerate(model_dict['class_codebook'].values()):
-            #     model_instance.feature_codebook[v] = Alphabet.from_dict(model_dict['feature_codebook'][str(i)])
-
             model_instance.feature_codebook = {}
             cookbook_list = [Alphabet.from_dict(v) for v in
                              model_dict['feature_codebook'].values()]
+
+            # numbering feature codebook (v class codebook) surprisingly fragile/impt
             idx = list(model_dict['class_codebook'].values())
+            # trying direct numbering
             for i, l in enumerate(cookbook_list):
-                model_instance.feature_codebook[idx[i]] = l
+                model_instance.feature_codebook[i] = l
 
             logging.info('starting rel_codebook')
             model_instance.rel_codebook = Alphabet.from_dict(model_dict['rel_codebook'])
 
-        # # synopsis
-        # m = model_instance
-        # logging.info(
-        #     '\n\n\n\n\n********************************************\n*******************************\n')
-        # logging.info(m.class_codebook.to_dict())
-        # logging.info(m.feature_codebook)
-        # for k in m.feature_codebook:
-        #
-        #     print('\n\n++++++++++++++=el+++++++++++++++++')
-        #     print(k)
-        #     if isinstance(k, int):
-        #         alpha = m.feature_codebook[k].to_dict()
-        #     else:
-        #         alpha = k.to_dict()
-        #
-        #     i = 0
-        #     for key, val in alpha.items():
-        #         print(key, val)
-        #         i += 1
-        #         if i > 10:
-        #             break
+            verbose=0
+            if verbose:
+                m = model_instance
+                if 1 == 1:
+                    k = list(m.__dict__.keys())
+                    logging.info(k)
+                    for key in k:
+                        attr_ = getattr(m, key)
+                        logging.info(key)
+                        if isinstance(attr_, dict):
+                            subk = attr_.keys()
+                            logging.info([(i, l) for i,l in enumerate(subk) if i <= 20])
+                        else:
+                            try:
+                                info = attr_.to_dict().keys()
+                                logging.info([(i, m) for i,m in enumerate(info) if i <= 20])
+                            except:
+                                logging.info('not Alphabet obj')
+                                logging.info(attr_)
+                                logging.info(type(attr_))
 
-        # same
-        # logging.info(list(m.__dict__.keys()))
-        # logging.info(m.avg_weight[0])
-        # logging.info(m.avg_weight[1])
-        # logging.info(m.avg_weight[5])
-        # fn = 'data/models/amr_anno_py3.m'
-        # with open(fn, 'wb') as f:
-        #     pickle.dump(model_instance, f)
-        import dill
-        fn = 'data/models/amr_anno_py3.m'
-        with open(fn, 'rb') as f:
-            model_instance = dill.load(f)
+
+            # sys.exit()
+            if 0 ==1:
+                m = model_instance
+                logging.info(
+                    '\n\n\n\n\n********************************************\n*******************************\n')
+                logging.info(f'FROM JSON {model_filename}')
+                logging.info(m.class_codebook.to_dict())
+                logging.info(m.feature_codebook)
+                for k in m.feature_codebook:
+
+                    print('\n\n++++++++++++++=el+++++++++++++++++')
+                    print(k)
+                    if isinstance(k, int):
+                        alpha = m.feature_codebook[k].to_dict()
+                    else:
+                        alpha = k.to_dict()
+
+                    i = 0
+                    for key, val in alpha.items():
+                        print(key, val)
+                        i += 1
+                        if i > 10:
+                            break
+
+            import dill
+            fn = 'data/models/amr_anno_py3.m'
+            with open(fn, 'wb') as f:
+                dill.dump(model_instance, f)
+
+            # fn1 = 'data/models/amr_anno1_py3.m'
+            # with open(fn1, 'wb') as f:
+            #     dill.dump(model_instance, f, fmode=2)
+            #
+            # fn2 = 'data/models/amr_anno2_py3.m'
+            # with open(fn2, 'wb') as f:
+            #     dill.dump(model_instance, f, byref=True)
+
+        elif mode == 'dill_load':
+            import dill
+            fn = f'data/models/amr_anno_py3.m'
+            with open(fn, 'rb') as f:
+                model_instance = dill.load(f)
+            logging.info(model_instance._feats_gen_filename)
+            logging.info(model_instance.feats_generator)
+            if 0 ==1:
+            # # synopsis
+                m = model_instance
+                logging.info(
+                    '\n\n\n\n\n********************************************\n*******************************\n')
+                logging.info(fn)
+                logging.info(m.class_codebook.to_dict())
+                logging.info(m.feature_codebook)
+                for k in m.feature_codebook:
+
+                    print('\n\n++++++++++++++=el+++++++++++++++++')
+                    print(k)
+                    if isinstance(k, int):
+                        alpha = m.feature_codebook[k].to_dict()
+                    else:
+                        alpha = k.to_dict()
+
+                    i = 0
+                    for key, val in alpha.items():
+                        print(key, val)
+                        i += 1
+                        if i > 10:
+                            break
+
         return model_instance
-
-
-
-
-
-
-
-
-
-        # 
-        #
-        # import os
-        # cwd = os.getcwd()
-        # fh = os.path.join(cwd, model_filename)
-        # #with contextlib.closing(bz2.BZ2File(model_filename, 'rb')) as f:
-        # logging.info(fh)
-        # import dill
-        # # with open(fh, 'rb') as f:
-        # #     for i, line in enumerate(f):
-        # #         logging.info(line)
-        # #         if i > 10:
-        # #             break
-        # import builtins
-        # builtins.file = builtins.open
-        #
-        # from pathlib import Path
-        # path = Path('./feature/basic_abt_brown_feats.templates')
-        # package_directory = os.path.dirname(os.path.abspath(__file__))
-        # os.chdir(package_directory)
-        # logging.info(os.getcwd())
-        # logging.info(path.is_file())
-        # import camr.common as common
-        # import camr.constants as constants
-        # with open(fh, 'rb') as f:
-        #     model = pickle._Unpickler(f, encoding='bytes').load()
-        # # deal with module name conflict
-        # #tmp = sys.path.pop(0)
-        # #model.avg_weight = np.load(open(model_filename+'.weight', 'rb'))
-        # #sys.path.insert(0,tmp)
-        #
-        #
-        # return model
-        # #return pickle.load(open(model_filename,'rb'))
-        #

@@ -96,8 +96,12 @@ class Newstate(object):
             # no dependency arc between i,j
             return tuple((-1,i,j))
         '''
+
     def apply(self,action):
-        return getattr(self,Newtate.action_table[action])()
+        logging.info(self.__dict__)
+        new_ = getattr(self,Newtate.action_table[action])()
+        logging.info(self.__dict__)
+        return new_
 
     def noshift(self):
         newstate = self.pcopy()

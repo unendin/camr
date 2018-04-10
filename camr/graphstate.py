@@ -75,6 +75,7 @@ class GraphState(object):
 
         GraphState.text = instance.text
         GraphState.sent = instance.tokens
+        logging.info(GraphState.sent)
         #GraphState.abt_tokens = {}
         GraphState.gold_graph = instance.gold_graph
         if GraphState.gold_graph: GraphState.gold_graph.abt_node_table = {}
@@ -270,6 +271,7 @@ class GraphState(object):
                 actions.append({'type':DELETENODE})
             actions.append({'type':NEXT2})
             actions.extend({'type':NEXT2,'tag':z} for z in all_candidate_tags)
+        logging.info(GraphState.sent)
 
         return actions
 
@@ -767,11 +769,25 @@ class GraphState(object):
     '''
         
     def get_score(self,act_type,feature,train=True): 
-        act_idx = GraphState.model.class_codebook.get_index(act_type)       
+        act_idx = GraphState.model.class_codebook.get_index(act_type)
+        logging.info(act_type)
+        logging.info(act_idx)
+
         #if GraphState.model.weight[act_idx].shape[0] <= GraphState.model.feature_codebook[act_idx].size():
         #    GraphState.model.reshape_weight(act_idx)        
         weight = GraphState.model.weight[act_idx] if train else GraphState.model.avg_weight[act_idx]
+        # logging.info(weight)
+
         feat_idx = list(map(GraphState.model.feature_codebook[act_idx].get_index,feature))
+        # logging.info(feature)
+        # for f in feature:
+        #     logging.info(f)
+        # #     logging.info(GraphState.model.feature_codebook[act_idx].get_index(f))
+        # logging.info(feat_idx)
+        # d = GraphState.model.feature_codebook[act_idx].__dict__
+        # res = [(k, v) for k, v in d['_label_to_index'].items() if k == 's0_w&tx=._None_']
+        # logging.info(res)
+
         try:
             return np.sum(weight[ [i for i in feat_idx if i is not None] ],axis = 0)
         except:
@@ -779,8 +795,9 @@ class GraphState(object):
             return np.sum(weight[ [i for i in feat_idx if i is not None and i < weight.size] ],axis = 0)
 
         
-    def make_feat(self,action):
-        feat = GraphState.model.feats_generator(self,action)
+    def make_feat(self, action):
+
+        feat = GraphState.model.feats_generator(self, action)
         return feat
             
     def get_current_node(self):
@@ -793,36 +810,36 @@ class GraphState(object):
             return None
 
     def apply(self,action):
+        logging.info(self.__dict__)
         action_type = action['type']
         logging.info(action)
         other_params = dict([(k,v) for k,v in list(action.items()) if k!='type' and v is not None])
         self.action_history.append(action)
         logging.info(other_params)
 
-        attr_ = getattr(self, GraphState.action_table[action_type])
-        logging.info(GraphState.action_table[action_type])
-        logging.info(attr_.__dict__)
-        logging.info(attr_(**other_params))
-        return getattr(self,GraphState.action_table[action_type])(**other_params)
+        # attr_ = getattr(self, GraphState.action_table[action_type])
+        # logging.info(GraphState.action_table[action_type])
+        # logging.info(attr_.__dict__)
+        apply_ =  getattr(self,GraphState.action_table[action_type])(**other_params)
+        logging.info(self.__dict__)
+        return apply_
         
 
     def next1(self, edge_label=None):
         newstate = self.pcopy()
         if edge_label and edge_label is not START_EDGE:
             newstate.A.set_edge_label(newstate.idx,newstate.cidx,edge_label)
-        logging.info(newstate.__dict__)
+        # logging.info(newstate.__dict__)
         if newstate.beta:
             newstate.beta.pop()
         newstate.cidx = newstate.beta.top() if newstate.beta else None
         #newstate.action_history.append(NEXT1)
-            
+        logging.info(newstate.__dict__)
+
         return newstate
 
     def next2(self, tag=None):
-        logging.info('success')
         newstate = self.pcopy()
-        logging.info('success')
-
         if tag: newstate.A.set_node_tag(newstate.idx,tag)
         newstate.sigma.pop()
         newstate.idx = newstate.sigma.top()
@@ -830,7 +847,7 @@ class GraphState(object):
         if newstate.beta is not None: newstate.beta.push(START_ID)
         newstate.cidx = newstate.beta.top() if newstate.beta else None
         #newstate.action_history.append(NEXT2)
-        
+        logging.info(newstate.__dict__)
         return newstate
 
     def delete_node(self):
@@ -842,7 +859,8 @@ class GraphState(object):
         if newstate.beta is not None: newstate.beta.push(START_ID)
         newstate.cidx = newstate.beta.top() if newstate.beta else None
         #newstate.action_history.append(DELETENODE)
-            
+        logging.info(GraphState.sent)
+
         return newstate
 
     def infer(self, tag):
@@ -918,6 +936,7 @@ class GraphState(object):
         newstate.beta = Buffer([c for c in newstate.A.nodes[newstate.idx].children if c != newstate.cidx and c not in newstate.A.nodes[newstate.cidx].parents])
         newstate.cidx = newstate.beta.top() if newstate.beta else None
         #newstate.action_history.append(SWAP)
+        logging.info(GraphState.sent)
 
         return newstate
     '''
@@ -941,7 +960,8 @@ class GraphState(object):
                 import pdb
                 pdb.set_trace()
         else:
-            newstate.A.add_edge(parent_to_add,newstate.cidx)        
+            newstate.A.add_edge(parent_to_add,newstate.cidx)
+        logging.info(GraphState.sent)
         return newstate
     
     def add_child(self,child_to_add,edge_label=None):
@@ -957,6 +977,8 @@ class GraphState(object):
         #self.new_actions.add('add_child_('+str(hoffset)+')_('+str(voffset)+')_'+str(GraphState.sentID))
         #self.new_actions.add('add_child_%s_%s'%(atype,str(GraphState.sentID)))
         #newstate.action_history.append(ADDCHILD)
+        logging.info(GraphState.sent)
+
         return newstate
 
 
@@ -989,6 +1011,8 @@ class GraphState(object):
                         import pdb
                         pdb.set_trace()
                     GraphState.sent[arg]['pred'][cidx] = atmp
+            logging.info(GraphState.sent)
+
                     
     def replace_head(self):
         """
@@ -1006,6 +1030,7 @@ class GraphState(object):
         newstate.idx = newstate.cidx
         newstate.cidx = newstate.beta.top() if newstate.beta else None
         #newstate.action_history.append(REPLACEHEAD)
+        logging.info(GraphState.sent)
 
         return newstate
 
@@ -1039,11 +1064,13 @@ class GraphState(object):
         newstate.beta = Buffer(newstate.A.nodes[newstate.idx].children[:])
         newstate.cidx = newstate.beta.top() if newstate.beta else None
         #newstate.action_history.append(MERGE)
+        logging.info(GraphState.sent)
 
         return newstate
 
     @staticmethod
     def get_parsed_amr(span_graph):
+        logging.info(GraphState.sent)
 
         def unpack_node(node,amr,variable):
             node_id = node.start
@@ -1052,6 +1079,7 @@ class GraphState(object):
             #    import pdb
             #    pdb.set_trace()
             core_var = None
+            logging.info(GraphState.sent)
             tokens_in_span = GraphState.sent[node.start:node.end] if isinstance(node_id,int) else node.words
             if isinstance(node_tag,ETag):
                 # normalize country adjective
